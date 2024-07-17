@@ -1,6 +1,17 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
+import { importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes';
+import { provideHttpClient } from '@angular/common/http';
+import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+const config: SocketIoConfig = { url: 'http://localhost:8080/ws', options: {} };
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    importProvidersFrom(SocketIoModule.forRoot(config)),
+    provideRouter(routes),
+    provideHttpClient(),
+  ],
+}).catch(err => console.error(err));

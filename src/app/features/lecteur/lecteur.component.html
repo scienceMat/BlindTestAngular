@@ -1,0 +1,67 @@
+<div>
+    <button (click)="login()">Login with Spotify</button>
+  </div>
+  
+  <div *ngIf="userService.getUserId() && !session">
+    <label>Select Session:</label>
+    <select [(ngModel)]="selectedSessionId">
+      <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
+    </select>
+    <button (click)="joinSession()">Join Session</button>
+  </div>
+  
+  <div>
+    <input type="text" [(ngModel)]="searchTerm" placeholder="Search for music">
+    <button (click)="search()">Search</button>
+  </div>
+  
+  <div *ngIf="searchResults.length > 0">
+    <h2>Search Results</h2>
+    <ul>
+      <li *ngFor="let track of searchResults">
+        <img [src]="track.album.images[0]?.url" alt="Album Art" width="50">
+        <span>{{ track.name }} by {{ track.artists[0]?.name }}</span>
+        <button (click)="addTrackToPlaylist(track)">Add to Playlist</button>
+      </li>
+    </ul>
+  </div>
+  
+  <div *ngIf="playlist.length > 0">
+    <h2>Playlist</h2>
+    <ul>
+      <li *ngFor="let track of playlist; let i = index" (click)="playPlaylistTrack(track, i)">
+        <img [src]="track.image" alt="Album Art" width="50">
+        <span>{{ track.title }} by {{ track.artist }}</span>
+      </li>
+    </ul>
+  </div>
+  
+  <div *ngIf="currentTrack">
+    <h2>{{ currentTrack.title }} by {{ currentTrack.artist }}</h2>
+    <div *ngIf="currentTrack.image">
+      <img [src]="currentTrack.image" alt="Album Art" width="300">
+    </div>
+    <div>
+      <input type="range" min="0" [max]="trackDuration" [value]="timeProgress" readonly>
+    </div>
+    <div>
+      <button (click)="pause()" *ngIf="isPlaying">Pause</button>
+      <button (click)="resume()" *ngIf="!isPlaying">Resume</button>
+      <button (click)="nextTrack()">Next</button>
+      <button (click)="previousTrack()">Previous</button>
+    </div>
+  </div>
+  
+
+  <div>
+    <button (click)="startSession()">Start Session</button>
+    <button (click)="nextQuestion()">Next Question</button>
+  </div>
+  
+  <div>
+    <h2>Submit Answer</h2>
+    <input type="text" placeholder="Title" #title>
+    <input type="text" placeholder="Artist" #artist>
+    <button (click)="submitAnswer(title.value, artist.value)">Submit</button>
+  </div>
+  

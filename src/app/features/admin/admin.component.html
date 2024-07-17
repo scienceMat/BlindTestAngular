@@ -1,0 +1,30 @@
+<!-- admin.component.html -->
+<div>
+  <h2>Create Session</h2>
+  <input [(ngModel)]="sessionName" type="text" placeholder="Session Name">
+  <button (click)="createSession()">Create Session</button>
+</div>
+
+<div>
+  <h2>Sessions</h2>
+  <ul>
+    <li *ngFor="let session of sessions" (click)="selectedSessionId = session.id">
+      {{ session.name }}
+    </li>
+  </ul>
+</div>
+
+<div *ngIf="selectedSessionId">
+  <button (click)="startSession()">Start Session</button>
+</div>
+
+<app-lecteur [session]="session"></app-lecteur>
+
+<nav>
+  <ul>
+    <li><a routerLink="/users">Users</a></li>
+    <li><a routerLink="/music">Music</a></li>
+    <li><a routerLink="/sessions">Sessions</a></li>
+  </ul>
+</nav>
+<router-outlet></router-outlet>

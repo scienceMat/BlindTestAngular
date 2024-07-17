@@ -1,0 +1,57 @@
+<!-- user.component.html -->
+<div>
+  <h1>User Panel</h1>
+
+  <div *ngIf="!userId">
+    <label>User Name:</label>
+    <input [(ngModel)]="userName" placeholder="Enter your name">
+    <button (click)="createUser()">Create User</button>
+  </div>
+
+  <div *ngIf="userId && !session">
+    <label>Select Session:</label>
+    <select [(ngModel)]="selectedSessionId">
+      <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
+    </select>
+    <button (click)="joinSession()">Join Session</button>
+  </div>
+
+  <ng-container *ngIf="session">
+    <h2>Session: {{ session?.name }}</h2>
+    <div>
+      <p>Time Remaining: {{ timeRemaining }} seconds</p>
+    </div>
+    <div>
+      <p>Current Music: {{ session.currentMusic?.title }} by {{ session.currentMusic?.artist }}</p>
+      <p>Track {{ session.currentMusicIndex + 1 }} of {{ session.musicList.length }}</p>
+    </div>
+    <div>
+      <p>Users in Session:</p>
+      <ul>
+        <li *ngFor="let user of session.users">
+          {{ user.userName }} - Score: {{ session.scores[user.id] || 0 }}
+        </li>
+      </ul>
+    </div>
+
+    <button class="buzz-button" (click)="buzz()" *ngIf="sessionStarted && !sessionPaused && !hasBuzzed">Buzz</button>
+    <div class="answer-form" *ngIf="hasBuzzed">
+      <label>Title:</label>
+      <input [(ngModel)]="title" placeholder="Enter title">
+      <label>Artist:</label>
+      <input [(ngModel)]="artist" placeholder="Enter artist">
+      <button (click)="submitAnswer(title, artist)" *ngIf="showSubmitButton">Submit</button> <!-- Utilisez showSubmitButton ici -->
+    </div>
+
+    <button (click)="logout()">Logout</button>
+  </ng-container>
+
+  <div *ngIf="showRanking">
+    <h2>Ranking</h2>
+    <ul>
+      <li *ngFor="let rank of ranking">
+        {{ rank.userName }} - Score: {{ rank.score }}
+      </li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+<div>
+    <h2>Login</h2>
+    <input type="text" placeholder="Username" [(ngModel)]="userName">
+    <input type="password" placeholder="Password" [(ngModel)]="password">
+    <button (click)="login()">Login</button>
+  </div>
+  
+  <div>
+    <h2>Create User</h2>
+    <input type="text" placeholder="Username" [(ngModel)]="userName">
+    <input type="password" placeholder="Password" [(ngModel)]="password">
+    <label>
+      <input type="checkbox" [(ngModel)]="isAdmin"> Admin
+    </label>
+    <button (click)="createUser()">Create User</button>
+  </div>
+  
