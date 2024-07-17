@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
-import { SpotifyService } from '../../core/services/spotifyService.service';
+import {SpotifyService} from '@services/spotifyService.service';
 import { SessionService } from '../../core/services/session.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -9,13 +9,15 @@ import { Session } from '../../core/models/session.model';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { TrackDTO } from '../../core/models/trackDTO';
+import {LoginButton} from './components/LoginButton/login-button.component';
+import {SelectSession} from './components/SelectSession/select-session.component';
 
 @Component({
   selector: 'app-lecteur',
   templateUrl: './lecteur.component.html',
   standalone: true,
   styleUrls: ['./lecteur.component.css'],
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, LoginButton, SelectSession],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
   trackId = '3n3Ppam7vgaVa1iaRUc9Lp'; // Example track ID
@@ -45,9 +47,10 @@ export class LecteurComponent implements OnInit, OnDestroy {
   private animationFrameId: any;
   private lastUpdateTime: number = 0;
   private token: string = '';
+  private connected : boolean = false;
 
   constructor(
-    private spotifyService: SpotifyService, 
+    private spotifyService: SpotifyService,
     private sessionService: SessionService,
     private authService: AuthService,
     public userService: UserService,
@@ -62,7 +65,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
       localStorage.setItem('spotify_token', this.token);
       this.spotifyService.setAccessToken(this.token);
       this.spotifyService.initializePlayer(this.token);
-
+      this.connected = true;
       // Subscribe to player state changes
       this.playerStateSubscription = this.spotifyService.playerState$.subscribe(state => {
         if (state) {
@@ -89,6 +92,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
+    this.connected = false;
   }
 
   loadSessions() {
@@ -97,10 +101,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
     });
   }
 
-  login() {
-    const authUrl = `https://accounts.spotify.com/authorize?response_type=token&client_id=${this.clientId}&scope=${encodeURIComponent(this.scopes.join(' '))}&redirect_uri=${encodeURIComponent(this.redirectUri)}`;
-    window.location.href = authUrl;
-  }
+
 
   search() {
     if (this.searchTerm) {
@@ -136,20 +137,20 @@ export class LecteurComponent implements OnInit, OnDestroy {
       console.error('Session ID is null');
       return;
     }
-  
+
     this.spotifyService.play({ uris: [uri] }).subscribe(() => {
       this.isPlaying = true;
-  
+
       // Récupérer l'état actuel du lecteur pour obtenir la durée de la piste
       this.spotifyService.getCurrentTrack().subscribe(track => {
         if (!track) {
           console.error('Track is null');
           return;
         }
-  
+
         this.trackDuration = track.duration_ms || 0;
         this.startProgressBar(); // Démarrer la barre de progression dès que la piste commence à jouer
-  
+
         // Mettre à jour l'index de la musique actuelle sur le back-end
         this.sessionService.updateCurrentMusicIndex(sessionId, trackIndex).subscribe(() => {
           console.log('Current music index updated');
@@ -163,16 +164,16 @@ export class LecteurComponent implements OnInit, OnDestroy {
       console.error('Error playing track:', error);
     });
   }
-  
-  
+
+
   playPlaylistTrack(track: TrackDTO, trackIndex: number) {
     if(!this.startSession){
+
       this.currentTrack = track;
       this.trackDuration = track.duration_ms || 0; // Mettre à jour la durée de la piste, 0 si non définie
       this.timeProgress = 0;
       this.playTrack(track.filePath, trackIndex); // Passez l'index de la piste ici
     }
-  
   }
 
   pause() {
@@ -207,7 +208,6 @@ export class LecteurComponent implements OnInit, OnDestroy {
     if (this.session && this.session.id) {
       this.sessionService.startSession(this.session.id).subscribe(response => {
         this.session = response;
-        this.playNextTrack();
       });
     }
   }
@@ -236,16 +236,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
     }
   }
 
-  joinSession() {
-    const userId = this.authService.currentUserValue?.id;
-    if (userId && this.selectedSessionId) {
-      this.sessionService.joinSession(this.selectedSessionId, userId).subscribe(response => {
-        this.sessionService.setSessionId(response.id);
-        this.session = response;
-        console.log('Joined session:', response);
-      });
-    }
-  }
+
 
   private mapToTrackDTO(state: any): TrackDTO | null {
     if (state && state.track_window && state.track_window.current_track) {
@@ -323,7 +314,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
       const currentIndex = this.session?.currentMusicIndex || 0;
       const nextIndex = (currentIndex + 1) % this.playlist.length; // Boucle à travers la playlist
       const nextTrack = this.playlist[nextIndex];
-  
+
       if (nextTrack && this.session) {
         this.playTrack(nextTrack.filePath, nextIndex);
         this.sessionService.updateCurrentMusicIndex(this.session.id, nextIndex).subscribe(); // Mise à jour de l'index sur le serveur

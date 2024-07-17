@@ -2,7 +2,26 @@
 /* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
-  "compilerOptions": {
+  "compilerOptions": {,,
+  "paths": {
+   /* "@abstracts*//*": ["./src/app/core/abstracts*//*"],
+    "@apis*//*": ["./src/app/core/apis*//*"],
+    "@constants": ["./src/app/core/constants/index"],
+    "@enums": ["./src/app/core/enums/index"],
+    "@interceptors*//*": ["./src/app/core/interceptors*//*"],
+    "@mappers": ["./src/app/core/mappers/index"],
+    "@models*//*": ["./src/app/core/models*//*"],
+    "@resolvers*//*": ["./src/app/core/resolvers*//*"],
+    "@guards*//*": ["./src/app/core/guards*//*"],*/
+    "@services/*": ["./src/app/core/services/*"],
+    /*"@validators*//*": ["./src/app/core/validators*//*"],
+    "@utils*//*": ["./src/app/core/utils*//*"],
+    "@layout*//*": ["./src/app/layout*//*"],
+    "@components*//*": ["./src/app/ui/components*//*"],
+    "@directives*//*": ["./src/app/ui/directives*//*"],
+    "@pipes*//*": ["./src/app/ui/pipes*//*"],
+    "@pages*//*": ["./src/app/pages*//*"]*/
+  },
     "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,

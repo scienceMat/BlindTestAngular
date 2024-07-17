@@ -1,0 +1,7 @@
+@if (!userService.getUserId() && !session) {
+  <label>Select Session:</label>
+  <select [(ngModel)]="selectedSessionId">
+    <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
+  </select>
+  <button (click)="joinSession()">Join Session</button>
+}

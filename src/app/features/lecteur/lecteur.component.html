@@ -1,20 +1,12 @@
-<div>
-    <button (click)="login()">Login with Spotify</button>
-  </div>
-  
-  <div *ngIf="userService.getUserId() && !session">
-    <label>Select Session:</label>
-    <select [(ngModel)]="selectedSessionId">
-      <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
-    </select>
-    <button (click)="joinSession()">Join Session</button>
-  </div>
-  
+<app-login-button></app-login-button>
+
+<app-select-session [session]="session"></app-select-session>
+
   <div>
     <input type="text" [(ngModel)]="searchTerm" placeholder="Search for music">
     <button (click)="search()">Search</button>
   </div>
-  
+
   <div *ngIf="searchResults.length > 0">
     <h2>Search Results</h2>
     <ul>
@@ -25,7 +17,7 @@
       </li>
     </ul>
   </div>
-  
+
   <div *ngIf="playlist.length > 0">
     <h2>Playlist</h2>
     <ul>
@@ -35,7 +27,7 @@
       </li>
     </ul>
   </div>
-  
+
   <div *ngIf="currentTrack">
     <h2>{{ currentTrack.title }} by {{ currentTrack.artist }}</h2>
     <div *ngIf="currentTrack.image">
@@ -51,17 +43,16 @@
       <button (click)="previousTrack()">Previous</button>
     </div>
   </div>
-  
+
 
   <div>
     <button (click)="startSession()">Start Session</button>
     <button (click)="nextQuestion()">Next Question</button>
   </div>
-  
+
   <div>
     <h2>Submit Answer</h2>
     <input type="text" placeholder="Title" #title>
     <input type="text" placeholder="Artist" #artist>
     <button (click)="submitAnswer(title.value, artist.value)">Submit</button>
   </div>
-  
