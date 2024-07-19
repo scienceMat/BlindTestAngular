@@ -1,0 +1,104 @@
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.custom-tabview {
+    width: 400px;
+    max-width: 90%;
+}
+
+:host ::ng-deep .p-tabview-nav {
+    justify-content: center;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    border-radius: 8px 8px 0 0;
+    border: 0px;
+
+}
+
+:host ::ng-deep .p-tabview .p-tabview-panels{
+    padding: 0;
+}
+:host ::ng-deep .p-tabview-nav li {
+    margin: 0;
+}
+
+:host ::ng-deep .p-tabview-nav li .p-tabview-nav-link {
+    color: white;
+    padding: 15px 25px;
+    border-radius: 15px 15px 15px 15px;
+    background: transparent;
+    transition: background 0.3s;
+}
+
+:host ::ng-deep .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    background: white;
+    color: #6a11cb;
+    font-weight: bold;
+    border: 0;
+}
+
+:host ::ng-deep .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+    border:0
+}
+
+:host ::ng-deep .p-tabview-nav li .p-tabview-nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.panel-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
+  padding: 20px;
+  border-radius: 0px 0px 8px 8px;
+}
+
+.my-container .ui-buttonset:not(.ui-splitbutton) .ui-button {
+    border-top-left-radius: .3em;
+    border-top-right-radius: .3em;
+    border-bottom-left-radius: .3em;
+    border-bottom-right-radius: .3em;
+    border-left: solid #cccccc .07em;
+    border-right: solid #cccccc .07em;
+    background: white;
+  }
+
+
+  :host ::ng-deep .p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+    background-color: #6a11cb;
+    border-color: #6a11cb;
+}
+
+:host ::ng-deep .p-inputswitch .p-inputswitch-slider {
+    background-color: #f0f2f5;
+    border-color: #6a11cb;
+}
+
+:host ::ng-deep .p-inputswitch .p-inputswitch-slider:before {
+    background-color: white;
+}
+
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  
+  .switch-label {
+    margin-right: 8px;
+    color: white;
+  }
+  
+  .switch-text {
+    margin-left: 8px;
+    color: white;
+  }
+  :host ::ng-deep .p-button-text {
+    text-align: center;
+  }

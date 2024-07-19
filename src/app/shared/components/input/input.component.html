@@ -1,0 +1,9 @@
+<!-- input.component.html -->
+<input
+  class="shared-input"
+  [attr.type]="type"
+  [attr.placeholder]="placeholder"
+  [value]="value"
+  (input)="onInput($event)"
+  (blur)="onTouched()"
+/>

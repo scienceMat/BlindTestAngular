@@ -13,7 +13,7 @@
     <select [(ngModel)]="selectedSessionId">
       <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
     </select>
-    <button (click)="joinSession()">Join Session</button>
+    <button (click)="joinSession()" class="btn-shared btn-secondary mb-3.5">Join Session</button>
   </div>
 
   <ng-container *ngIf="session">

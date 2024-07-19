@@ -1,20 +1,26 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '@services/auth.service';
+import { SpotifyService } from '@services/spotifyService.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AdminGuard implements CanActivate {
-
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, private spotifyService: SpotifyService) {}
 
   canActivate(): boolean {
     const currentUser = this.authService.currentUserValue;
     if (currentUser && currentUser.isAdmin) {
-      return true;
+      if (this.authService.isAuthenticated() && this.authService.isSpotifyTokenValid()) {
+        return true;
+      } else {
+        this.router.navigate(['/loginSpotify']);
+        return false;
+      }
+    } else {
+      this.router.navigate(['/']);
+      return false;
     }
-    this.router.navigate(['/login']);
-    return false;
   }
 }

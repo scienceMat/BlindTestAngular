@@ -10,17 +10,13 @@ export class AuthGuard implements CanActivate {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    const currentUser = this.authService.currentUserValue;
-    if (currentUser) {
-      // authorized so return true
+  canActivate(): boolean {
+    if (this.authService.isAuthenticated() && this.authService.isSpotifyTokenValid()) {
       return true;
+    } else {
+      this.authService.logout();
+      this.router.navigate(['/login']);
+      return false;
     }
-
-    // not logged in so redirect to login page
-    this.router.navigate(['/login']);
-    return false;
   }
 }

@@ -1,11 +1,11 @@
-<app-login-button></app-login-button>
 
-<app-select-session [session]="session"></app-select-session>
 
   <div>
-    <input type="text" [(ngModel)]="searchTerm" placeholder="Search for music">
-    <button (click)="search()">Search</button>
+    <app-input-text type="text" [(ngModel)]="searchTerm" placeholder="Search for music"></app-input-text>
+    <button (click)="search()" class="btn-shared btn-primary mb-3.5">Search</button>
   </div>
+
+  <app-display-playlist [playlist]="playlist"></app-display-playlist>
 
   <div *ngIf="searchResults.length > 0">
     <h2>Search Results</h2>
@@ -13,7 +13,7 @@
       <li *ngFor="let track of searchResults">
         <img [src]="track.album.images[0]?.url" alt="Album Art" width="50">
         <span>{{ track.name }} by {{ track.artists[0]?.name }}</span>
-        <button (click)="addTrackToPlaylist(track)">Add to Playlist</button>
+        <button (click)="addTrackToPlaylist(track)"  class="btn-shared btn-primary mb-3.5">Add to Playlist</button>
       </li>
     </ul>
   </div>
@@ -46,13 +46,13 @@
 
 
   <div>
-    <button (click)="startSession()">Start Session</button>
-    <button (click)="nextQuestion()">Next Question</button>
+    <button (click)="startSession()"  class="btn-shared btn-primary mb-3.5">Start Session</button>
+    <button (click)="nextQuestion()"  class="btn-shared btn-primary mb-3.5">Next Question</button>
   </div>
 
   <div>
     <h2>Submit Answer</h2>
-    <input type="text" placeholder="Title" #title>
-    <input type="text" placeholder="Artist" #artist>
-    <button (click)="submitAnswer(title.value, artist.value)">Submit</button>
+    <app-input-text type="text" placeholder="Title" #title></app-input-text>
+    <app-input-text type="text" placeholder="Artist" #artist></app-input-text>
+    <button (click)="submitAnswer(title.value, artist.value)"  class="btn-shared btn-primary mb-3.5">Submit</button>
   </div>

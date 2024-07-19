@@ -1,0 +1,9 @@
+<div>
+    <h2>Playlist</h2>
+    <ul>
+      <li *ngFor="let track of playlist">
+        <img [src]="track.image" alt="Album Art" width="50">
+        <span>{{ track.title }} by {{ track.artist }}</span>
+      </li>
+    </ul>
+  </div>

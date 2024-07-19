@@ -1,30 +1,27 @@
-<!-- admin.component.html -->
-<div>
-  <h2>Create Session</h2>
-  <input [(ngModel)]="sessionName" type="text" placeholder="Session Name">
-  <button (click)="createSession()">Create Session</button>
-</div>
+@if(connected) {
+  <div class="admin-container">
+    <h2>Create Session</h2>
+    <div class="p-fluid form-container">
+      <app-input-text [(ngModel)]="sessionName" type="text" placeholder="Session Name"></app-input-text>
+      <button (click)="createSession()" class="btn-shared btn-primary mb-3.5">Create Session</button>
+    </div>
 
-<div>
-  <h2>Sessions</h2>
-  <ul>
-    <li *ngFor="let session of sessions" (click)="selectedSessionId = session.id">
-      {{ session.name }}
-    </li>
-  </ul>
-</div>
+    <app-select-session [sessions]="sessions"></app-select-session>
 
-<div *ngIf="selectedSessionId">
-  <button (click)="startSession()">Start Session</button>
-</div>
+    <div *ngIf="selectedSessionId" class="button-group">
+      <button (click)="startSession()" class="btn-shared btn-primary mb-3.5">Start Session</button>
+      <button (click)="joinSession()" class="btn-shared btn-secondary mb-3.5">Join Session</button>
+    </div>
 
-<app-lecteur [session]="session"></app-lecteur>
+    <app-lecteur [session]="session"></app-lecteur>
+    <app-display-playlist [playlist]="playlist"></app-display-playlist>
 
-<nav>
-  <ul>
-    <li><a routerLink="/users">Users</a></li>
-    <li><a routerLink="/music">Music</a></li>
-    <li><a routerLink="/sessions">Sessions</a></li>
-  </ul>
-</nav>
-<router-outlet></router-outlet>
+    <router-outlet></router-outlet>
+  </div>
+} @else {
+  <ng-container *ngTemplateOutlet="logintemplate"></ng-container>
+}
+
+<ng-template #logintemplate>
+  <app-login-button></app-login-button>
+</ng-template>

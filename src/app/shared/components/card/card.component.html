@@ -1,0 +1,8 @@
+<p-card>
+    <ng-container *ngIf="title">
+        <ng-template pTemplate="header">
+            {{ title }}
+        </ng-template>
+    </ng-container>
+    <ng-content></ng-content>
+</p-card>

@@ -2,9 +2,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../core/services/user.service';
-import { SessionService } from '../../core/services/session.service';
-import { WebSocketService } from '../../core/services/web-socket.service';
+import { UserService } from '@services/user.service';
+import { SessionService } from '@services/session.service';
+import { WebSocketService } from '@services/web-socket.service';
 
 @Component({
   selector: 'app-user',

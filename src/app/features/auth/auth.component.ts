@@ -4,28 +4,35 @@ import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { UserService } from '../../core/services/user.service';
+import { TabViewModule } from 'primeng/tabview';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { InputTextComponent } from '../../shared/components/input/input.component';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { InputSwitchModule } from 'primeng/inputswitch';
 
 @Component({
   selector: 'app-auth',
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TabViewModule, ToggleButtonModule, InputTextComponent, SelectButtonModule,InputSwitchModule]
 })
 export class AuthComponent {
   userName: string = '';
   password: string = '';
   isAdmin: boolean = false;
+  activeIndex: number = 0;
 
-  constructor(private authService: AuthService,
-     private router: Router,
-    private userService: UserService) {}
+  constructor(private authService: AuthService, private router: Router) {}
+
+  stateOptions = [
+    { label: 'User', value: false },
+    { label: 'Admin', value: true }
+  ];
 
   login() {
     this.authService.login(this.userName, this.password).subscribe(user => {
       if (user) {
-        this.userService.setUserId(user.id);
         if (user.isAdmin) {
           this.router.navigate(['/admin']);
         } else {
@@ -39,14 +46,7 @@ export class AuthComponent {
 
   createUser() {
     this.authService.createUser({ userName: this.userName, password: this.password, isAdmin: this.isAdmin }).subscribe(user => {
-      this.userService.setUserId(user.id)
       alert('User created successfully!');
     });
-  }
-
-  logout() {
-    this.authService.logout();
-    localStorage.removeItem('userId');
-    this.router.navigate(['/login']);
   }
 }

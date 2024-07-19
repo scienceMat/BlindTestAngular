@@ -1,23 +1,26 @@
-import { Component, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
-import {SpotifyService} from '@services/spotifyService.service';
-import { SessionService } from '../../core/services/session.service';
-import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { SpotifyService } from '@services/spotifyService.service';
+import { Subscription } from 'rxjs';
+
 import { Session } from '../../core/models/session.model';
-import { AuthService } from '../../core/services/auth.service';
-import { UserService } from '../../core/services/user.service';
 import { TrackDTO } from '../../core/models/trackDTO';
-import {LoginButton} from './components/LoginButton/login-button.component';
-import {SelectSession} from './components/SelectSession/select-session.component';
+import { AuthService } from '../../core/services/auth.service';
+import { SessionService } from '../../core/services/session.service';
+import { UserService } from '../../core/services/user.service';
+import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
+import { SelectSession } from '../../shared/components/SelectSession/select-session.component';
+import { DisplayPlaylistComponent } from '../admin/components/display-playlist/display-playlist.component';
+import { InputTextComponent } from '../../shared/components/input/input.component';
 
 @Component({
   selector: 'app-lecteur',
   templateUrl: './lecteur.component.html',
   standalone: true,
   styleUrls: ['./lecteur.component.css'],
-  imports: [CommonModule, FormsModule, RouterModule, LoginButton, SelectSession],
+  imports: [CommonModule, FormsModule, RouterModule, LoginButton, SelectSession, DisplayPlaylistComponent, InputTextComponent],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
   trackId = '3n3Ppam7vgaVa1iaRUc9Lp'; // Example track ID
@@ -84,6 +87,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
       });
     }
   }
+  
 
   ngOnDestroy(): void {
     if (this.playerStateSubscription) {

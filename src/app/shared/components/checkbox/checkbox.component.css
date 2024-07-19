@@ -1,0 +1,11 @@
+/* Add your styles here */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  

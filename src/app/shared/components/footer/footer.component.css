@@ -1,0 +1,8 @@
+.app-footer {
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 8px 8px;
+}

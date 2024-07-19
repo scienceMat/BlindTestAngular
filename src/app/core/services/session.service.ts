@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {Session} from '../models/session.model'
+import { interval } from 'rxjs';
+import { SpotifyService } from './spotifyService.service';
+import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -9,7 +14,7 @@ export class SessionService {
   private apiUrl = 'http://localhost:8080/sessions';
   private sessionId: number | null = null;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService, private spotifyService: SpotifyService, private router: Router) { }
 
   getAllSessions(): Observable<any> {
     return this.http.get(this.apiUrl);
@@ -76,4 +81,6 @@ export class SessionService {
     }
     return this.sessionId;
   }
+
+
 }
