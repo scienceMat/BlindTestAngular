@@ -10,13 +10,13 @@
   <div *ngIf="searchResults.length > 0">
     <h2>Search Results</h2>
     <ul>
-      <li *ngFor="let track of searchResults">
-        <img [src]="track.album.images[0]?.url" alt="Album Art" width="50">
-        <span>{{ track.name }} by {{ track.artists[0]?.name }}</span>
-        <button (click)="addTrackToPlaylist(track)"  class="btn-shared btn-primary mb-3.5">Add to Playlist</button>
-      </li>
+        <li *ngFor="let track of searchResults">
+            <img [src]="track.album.images[0]?.url" alt="Album Art" width="50">
+            <span>{{ track.name }} by {{ track.artists[0]?.name }}</span>
+            <button (click)="addTrackToPlaylist(track)">Add to Playlist</button>
+        </li>
     </ul>
-  </div>
+</div>
 
   <div *ngIf="playlist.length > 0">
     <h2>Playlist</h2>

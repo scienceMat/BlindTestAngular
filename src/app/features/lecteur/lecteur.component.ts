@@ -11,7 +11,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserService } from '../../core/services/user.service';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
-import { SelectSession } from '../../shared/components/SelectSession/select-session.component';
 import { DisplayPlaylistComponent } from '../admin/components/display-playlist/display-playlist.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
 
@@ -20,7 +19,7 @@ import { InputTextComponent } from '../../shared/components/input/input.componen
   templateUrl: './lecteur.component.html',
   standalone: true,
   styleUrls: ['./lecteur.component.css'],
-  imports: [CommonModule, FormsModule, RouterModule, LoginButton, SelectSession, DisplayPlaylistComponent, InputTextComponent],
+  imports: [CommonModule, FormsModule, RouterModule, LoginButton, DisplayPlaylistComponent, InputTextComponent],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
   trackId = '3n3Ppam7vgaVa1iaRUc9Lp'; // Example track ID
@@ -49,25 +48,24 @@ export class LecteurComponent implements OnInit, OnDestroy {
   private playerStateSubscription: Subscription = new Subscription();
   private animationFrameId: any;
   private lastUpdateTime: number = 0;
-  private token: string = '';
+  private token: string = '' ;
   private connected : boolean = false;
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private spotifyService: SpotifyService,
     private sessionService: SessionService,
     private authService: AuthService,
     public userService: UserService,
-    private cdr: ChangeDetectorRef // Ajoutez ChangeDetectorRef ici
+    private cdr: ChangeDetectorRef, // Ajoutez ChangeDetectorRef ici
   ) {}
 
   ngOnInit(): void {
-    const params = this.getHashParams();
-    this.token = params['access_token'];
-
-    if (this.token) {
-      localStorage.setItem('spotify_token', this.token);
-      this.spotifyService.setAccessToken(this.token);
-      this.spotifyService.initializePlayer(this.token);
+    const token = localStorage.getItem('spotify_token');
+    if(token){
+      this.token= token;
+    }
+    this.spotifyService.initializePlayer(this.token);
       this.connected = true;
       // Subscribe to player state changes
       this.playerStateSubscription = this.spotifyService.playerState$.subscribe(state => {
@@ -78,15 +76,24 @@ export class LecteurComponent implements OnInit, OnDestroy {
 
       // Load all sessions
       this.loadSessions();
-
+        this.subscription = this.sessionService.session$.subscribe(session => {
+          this.session = session;
+          if (session) {
+            // Effectuer les opérations nécessaires lorsque la session change
+            console.log('Session updated in LecteurComponent:', session);
+          }
+        });
+      
       // Get initial player state
       this.spotifyService.getCurrentPlaybackState().subscribe(state => {
         if (state) {
           this.updateTrackState(state);
         }
       });
-    }
+    
   }
+
+  
   
 
   ngOnDestroy(): void {
@@ -118,7 +125,8 @@ export class LecteurComponent implements OnInit, OnDestroy {
   }
 
   addTrackToPlaylist(track: any) {
-    if (this.session !== null) {
+    this.selectedSessionId = this.sessionService.getSessionId();
+    if (this.selectedSessionId !== null) {
       const music = {
         title: track.name,
         image: track.album.images[0]?.url,
@@ -126,7 +134,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
         filePath: track.uri,
         duration_ms: track.duration_ms
       };
-      this.sessionService.addMusicToSession(this.session.id, music).subscribe((data: any) => {
+      this.sessionService.addMusicToSession(this.selectedSessionId, music).subscribe((data: any) => {
         this.playlist = data.musics
         if (this.playlist.length === 1) {
           this.playPlaylistTrack(this.playlist[0],0); // Sélectionner la première piste ajoutée
@@ -209,9 +217,11 @@ export class LecteurComponent implements OnInit, OnDestroy {
   }
 
   startSession() {
-    if (this.session && this.session.id) {
-      this.sessionService.startSession(this.session.id).subscribe(response => {
-        this.session = response;
+    const sessionId = this.sessionService.getSessionId();
+    if (sessionId) {
+      this.sessionService.startSession(sessionId).subscribe((response) => {
+        this.sessionService.setSession(response); // Mettre à jour la session dans le service
+        console.log('Session started:', response);
       });
     }
   }

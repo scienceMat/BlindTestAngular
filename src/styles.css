@@ -78,6 +78,8 @@
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     background: white;
     color: #6a11cb;
+    cursor: pointer; /* Ajout du curseur */
+
 }
 
 .form-container {

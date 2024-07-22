@@ -1,6 +1,6 @@
 @if (userId && sessions) {
   <label>Select Session:</label>
-  <select [(ngModel)]="selectedSessionId">
+  <select [(ngModel)]="selectedSessionId" (change)="onSessionChange()">
     <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
   </select>
   <button (click)="joinSession()" class="btn-shared btn-primary mb-3.5">Join Session</button>

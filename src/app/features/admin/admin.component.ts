@@ -14,7 +14,7 @@ import { RouterModule } from '@angular/router';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
 import { LecteurComponent } from '../lecteur/lecteur.component';
 import { TrackDTO } from '../../core/models/trackDTO';
-import { SelectSession } from '../../shared/components/SelectSession/select-session.component';
+import { SelectSessionComponent } from '../../shared/components/SelectSession/select-session.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
 
 @Component({
@@ -23,12 +23,12 @@ import { InputTextComponent } from '../../shared/components/input/input.componen
   styleUrls: ['./admin.component.css'],
   standalone: true,
   imports: [CommonModule,
-     FormsModule,
-      RouterModule,
-       DisplayPlaylistComponent,
-       LoginButton, SelectSession,
-      LecteurComponent,
-      InputTextComponent],
+    FormsModule,
+    RouterModule,
+    DisplayPlaylistComponent,
+    LoginButton,
+    LecteurComponent,
+    InputTextComponent, SelectSessionComponent],
   providers: [UserService, SessionService, SpotifyService,InputTextComponent],
 })
 export class AdminComponent implements OnInit {
@@ -116,8 +116,9 @@ export class AdminComponent implements OnInit {
     if (userId !== undefined && sessionId !== null) {
       this.sessionService.joinSession(sessionId, userId).subscribe((response) => {
         this.sessionService.setSessionId(response.id);
-        this.session = response;
+        this.sessionService.setSession(response); // Mettre à jour la session dans le service
         this.loadPlaylist(sessionId);
+        this.cdr.detectChanges();
         console.log('Joined session:', response);
       });
     } else {
@@ -133,13 +134,21 @@ export class AdminComponent implements OnInit {
   }
 
   startSession() {
-    if (this.session) {
-      this.sessionService.startSession(this.session.id).subscribe((response) => {
-        this.session = response;
+    const sessionId = this.sessionService.getSessionId();
+    if (sessionId) {
+      this.sessionService.startSession(sessionId).subscribe((response) => {
+        this.sessionService.setSession(response); // Mettre à jour la session dans le service
         console.log('Session started:', response);
       });
     }
   }
+
+  onSessionSelected(session: Session) {
+    this.selectedSessionId = session.id;
+    this.sessionService.setSession(session); // Mettre à jour la session dans le service
+    console.log('Selected session:', session);
+  }
+
 
   logout() {
     this.authService.logout();

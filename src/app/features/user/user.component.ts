@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { UserService } from '@services/user.service';
 import { SessionService } from '@services/session.service';
 import { WebSocketService } from '@services/web-socket.service';
+import { AuthService } from '@services/auth.service';
 
 @Component({
   selector: 'app-user',
@@ -24,7 +25,7 @@ export class UserComponent implements OnInit {
   sessions: any[] = [];
   timeRemaining: number | null = null;
   intervalId: any = null;
-  userId: number | null = null;
+  userId: number | null | undefined; // Example user ID, you might want to get this dynamically
   sessionStarted: boolean = false;
   sessionPaused: boolean = false;
   showRanking: boolean = false;
@@ -34,13 +35,13 @@ export class UserComponent implements OnInit {
   constructor(
     public userService: UserService,
     public sessionService: SessionService,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.loadSessions();
-    this.userId = this.userService.getUserId();
-    if (this.userId) {
+    this.userId = this.authService.currentUserValue?.id;    if (this.userId) {
       this.checkSession();
     }
     this.initializeWebSocketConnection();

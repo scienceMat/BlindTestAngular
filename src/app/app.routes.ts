@@ -15,7 +15,7 @@ export const routes: Routes = [
   { path: 'loginSpotify', component: LoginSpotifyComponent},
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard]},
   { path: 'sessions', component: SessionComponent, canActivate: [AuthGuard] },
-  { path: 'users', component: UserComponent, canActivate: [AuthGuard] },
+  { path: 'users', component: UserComponent },
   { path: 'callback', component: LecteurComponent },
 
 ];

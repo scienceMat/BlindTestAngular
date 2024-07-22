@@ -6,7 +6,7 @@
       <button (click)="createSession()" class="btn-shared btn-primary mb-3.5">Create Session</button>
     </div>
 
-    <app-select-session [sessions]="sessions"></app-select-session>
+    <app-select-session [sessions]="sessions" (sessionSelected)="onSessionSelected($event)"></app-select-session>
 
     <div *ngIf="selectedSessionId" class="button-group">
       <button (click)="startSession()" class="btn-shared btn-primary mb-3.5">Start Session</button>

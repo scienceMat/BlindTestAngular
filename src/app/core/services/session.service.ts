@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import {Session} from '../models/session.model'
-import { interval } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { Session } from '../models/session.model';
 import { SpotifyService } from './spotifyService.service';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
@@ -14,7 +13,16 @@ export class SessionService {
   private apiUrl = 'http://localhost:8080/sessions';
   private sessionId: number | null = null;
 
-  constructor(private http: HttpClient, private authService: AuthService, private spotifyService: SpotifyService, private router: Router) { }
+  // Gestion de l'état de la session
+  private sessionSubject = new BehaviorSubject<Session | null>(null);
+  session$ = this.sessionSubject.asObservable();
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+    private spotifyService: SpotifyService,
+    private router: Router
+  ) {}
 
   getAllSessions(): Observable<any> {
     return this.http.get(this.apiUrl);
@@ -35,6 +43,7 @@ export class SessionService {
   nextQuestion(sessionId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionId}/next`, {});
   }
+
   updateCurrentMusicIndex(sessionId: number, index: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionId}/current-music`, { index });
   }
@@ -72,8 +81,6 @@ export class SessionService {
     return this.http.get<Session>(`${this.apiUrl}/${sessionId}`);
   }
 
-  
-
   getSessionId(): number | null {
     if (!this.sessionId) {
       const storedId = localStorage.getItem('sessionId');
@@ -82,5 +89,14 @@ export class SessionService {
     return this.sessionId;
   }
 
+  // Gestion de l'état de la session
+  setSession(session: Session) {
+    this.sessionSubject.next(session);
+  }
 
+  clearSession() {
+    this.sessionSubject.next(null);
+  }
+
+  
 }
