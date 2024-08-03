@@ -1,22 +1,20 @@
+import { TrackDTO } from "./trackDTO";
+import { User } from "./user.model";
 export interface Session {
-    id: number;
+  id: number;
   name: string;
-  users: User[];
-  scores: { [userId: number]: number };
+  adminId: number;
+  users: User[]; // Ensure this is using the correct User type
+  musicList: TrackDTO[];
+  scores: { [key: number]: number };
   currentMusicIndex: number;
-  status: string; // "waiting", "in-progress", "finished"
-  startTime: string;
-  endTime: string;
-  questionStartTime: string;
-  currentMusic: Music;
-  musics: Music[];
-  }
+  status: string;
+  startTime: Date;
+  endTime: Date;
+  questionStartTime: Date;
+  currentMusic?: TrackDTO;
+}
   
-  export interface User {
-    id: number;
-    name: string;
-    score: number;
-  }
   
   export interface Music {
     id: number;

@@ -1,21 +1,20 @@
-<!-- user.component.html -->
 <div>
   <h1>User Panel</h1>
 
+  <!-- User creation section -->
   <div *ngIf="!userId">
     <label>User Name:</label>
     <input [(ngModel)]="userName" placeholder="Enter your name">
     <button (click)="createUser()">Create User</button>
   </div>
 
-  <div *ngIf="userId && !session">
-    <label>Select Session:</label>
-    <select [(ngModel)]="selectedSessionId">
-      <option *ngFor="let session of sessions" [value]="session.id">{{ session.name }}</option>
-    </select>
-    <button (click)="joinSession()" class="btn-shared btn-secondary mb-3.5">Join Session</button>
-  </div>
+  <!-- Session selection and join section -->
+  <app-select-session 
+    [sessions]="sessions" 
+    (sessionSelected)="onSessionSelected($event)" 
+    (sessionJoined)="onSessionJoined($event)"></app-select-session>
 
+  <!-- Session details and interaction section -->
   <ng-container *ngIf="session">
     <h2>Session: {{ session?.name }}</h2>
     <div>
@@ -40,12 +39,13 @@
       <input [(ngModel)]="title" placeholder="Enter title">
       <label>Artist:</label>
       <input [(ngModel)]="artist" placeholder="Enter artist">
-      <button (click)="submitAnswer(title, artist)" *ngIf="showSubmitButton">Submit</button> <!-- Utilisez showSubmitButton ici -->
+      <button (click)="submitAnswer(title, artist)" *ngIf="showSubmitButton">Submit</button>
     </div>
 
     <button (click)="logout()">Logout</button>
   </ng-container>
 
+  <!-- Ranking display -->
   <div *ngIf="showRanking">
     <h2>Ranking</h2>
     <ul>

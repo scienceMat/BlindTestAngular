@@ -1,0 +1,45 @@
+<div *ngIf="session">
+    <h2>{{ session?.name }}</h2>
+    <h3>Now Playing: {{ currentTrack?.title }} by {{ currentTrack?.artist }}</h3>
+  
+    <div>
+      <app-lecteur [session]="session"></app-lecteur>
+    </div>
+  
+    <div>
+      <h3>Playlist</h3>
+      <ul>
+        <li *ngFor="let track of playlist">
+          {{ track.title }} - {{ track.artist }}
+        </li>
+      </ul>
+    </div>
+
+    <div>
+        <h3>Users</h3>
+        <ul>
+          <li *ngFor="let user of session.users">
+            {{ user.userName }} - {{ user.score }}
+          </li>
+        </ul>
+      </div>
+  
+    <div>
+      <h3>Scores</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let score of scores">
+            <td>{{ score.user.userName }}</td>
+            <td>{{ score.score }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  

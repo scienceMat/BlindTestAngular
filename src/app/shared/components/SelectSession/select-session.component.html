@@ -5,3 +5,11 @@
   </select>
   <button (click)="joinSession()" class="btn-shared btn-primary mb-3.5">Join Session</button>
 }
+
+<div *ngIf="showErrorModal" class="modal-backdrop">
+  <div class="modal">
+    <h2>Error</h2>
+    <p>You have already joined this session.</p>
+    <button (click)="closeErrorModal()">Close</button>
+  </div>
+</div>

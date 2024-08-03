@@ -1,21 +1,21 @@
-import { Component, OnInit, ChangeDetectorRef, TrackByFunction } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { SpotifyService } from '../../core/services/spotifyService.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserService } from '../../core/services/user.service';
 import { Session } from '../../core/models/session.model';
-import { Music } from '../../core/models/music.model';
-import { switchMap } from 'rxjs/operators';
+import { TrackDTO } from '../../core/models/trackDTO';
 import { DisplayPlaylistComponent } from './components/display-playlist/display-playlist.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
 import { LecteurComponent } from '../lecteur/lecteur.component';
-import { TrackDTO } from '../../core/models/trackDTO';
 import { SelectSessionComponent } from '../../shared/components/SelectSession/select-session.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
+import { PlaylistService } from '../../core/services/utils/playlistService';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin',
@@ -33,7 +33,7 @@ import { InputTextComponent } from '../../shared/components/input/input.componen
 })
 export class AdminComponent implements OnInit {
   sessionName: string = '';
-  sessions: any[] = [];
+  sessions: Session[] = [];
   session: Session | null = null;
   selectedSessionId: number | null = null;
   playlist: TrackDTO[] = [];
@@ -44,7 +44,8 @@ export class AdminComponent implements OnInit {
     private router: Router,
     private spotifyService: SpotifyService,
     private sessionService: SessionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private playlistService: PlaylistService
   ) {}
 
   ngOnInit() {
@@ -55,12 +56,20 @@ export class AdminComponent implements OnInit {
         this.connected = true;
         this.spotifyService.setAccessToken(token);
         this.loadSessions();
+
+        // Check if the user is already connected to a session
+        this.checkSessionConnection(currentUser.id);
       } else {
         this.redirectToSpotifyLogin();
       }
     } else {
       this.router.navigate(['/login']);
     }
+
+    this.playlistService.playlist$.subscribe((playlist) => {
+      this.playlist = playlist;
+      console.log('Received playlist update in AdminComponent:', playlist);
+    });
   }
 
   redirectToSpotifyLogin() {
@@ -116,8 +125,9 @@ export class AdminComponent implements OnInit {
     if (userId !== undefined && sessionId !== null) {
       this.sessionService.joinSession(sessionId, userId).subscribe((response) => {
         this.sessionService.setSessionId(response.id);
-        this.sessionService.setSession(response); // Mettre à jour la session dans le service
+        this.sessionService.setSession(response); // Update session in the service
         this.loadPlaylist(sessionId);
+        this.saveSessionConnection(sessionId); // Save session connection to local storage
         this.cdr.detectChanges();
         console.log('Joined session:', response);
       });
@@ -126,9 +136,13 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  private saveSessionConnection(sessionId: number) {
+    localStorage.setItem('connectedSessionId', sessionId.toString());
+  }
+
   loadPlaylist(sessionId: number) {
     this.sessionService.getPlaylist(sessionId).subscribe((playlist) => {
-      this.playlist = playlist;
+      this.playlist = playlist.musics;
       this.cdr.detectChanges();
     });
   }
@@ -139,6 +153,8 @@ export class AdminComponent implements OnInit {
       this.sessionService.startSession(sessionId).subscribe((response) => {
         this.sessionService.setSession(response); // Mettre à jour la session dans le service
         console.log('Session started:', response);
+        this.router.navigate(['/session-screen', sessionId]); // Navigate to the session screen
+
       });
     }
   }
@@ -146,12 +162,44 @@ export class AdminComponent implements OnInit {
   onSessionSelected(session: Session) {
     this.selectedSessionId = session.id;
     this.sessionService.setSession(session); // Mettre à jour la session dans le service
+    this.loadPlaylist(session.id); // Load the playlist for the selected session
+    this.saveSessionConnection(session.id); // Save the connection to local storage
     console.log('Selected session:', session);
   }
 
+  onSessionJoined(session: Session) {
+    this.selectedSessionId = session.id;
+    this.session = session;
+    this.saveSessionConnection(session.id);
+    console.log('Session joined:', session);
+  }
 
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  private checkSessionConnection(userId: number) {
+    const sessionId = localStorage.getItem('connectedSessionId');
+    if (sessionId) {
+      this.sessionService.getSession(parseInt(sessionId)).subscribe(
+        (session) => {
+          if (session && session.users.some(participant => participant.id === userId)) {
+            this.session = session;
+            this.selectedSessionId = session.id;
+            this.sessionService.setSession(session);
+            this.loadPlaylist(session.id);
+            console.log('User is already connected to session:', session);
+          } else {
+            localStorage.removeItem('connectedSessionId');
+            console.log('User is not connected to this session or session does not exist.');
+          }
+        },
+        (error) => {
+          localStorage.removeItem('connectedSessionId');
+          console.error('Error checking session connection:', error);
+        }
+      );
+    }
   }
 }

@@ -13,13 +13,19 @@ import { UserService } from '../../core/services/user.service';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
 import { DisplayPlaylistComponent } from '../admin/components/display-playlist/display-playlist.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
+import { PlaylistService } from '../../core/services/utils/playlistService'; // Import the service
 
 @Component({
   selector: 'app-lecteur',
   templateUrl: './lecteur.component.html',
   standalone: true,
   styleUrls: ['./lecteur.component.css'],
-  imports: [CommonModule, FormsModule, RouterModule, LoginButton, DisplayPlaylistComponent, InputTextComponent],
+  imports: [CommonModule,
+     FormsModule,
+      RouterModule,
+       LoginButton,
+        DisplayPlaylistComponent,
+         InputTextComponent],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
   trackId = '3n3Ppam7vgaVa1iaRUc9Lp'; // Example track ID
@@ -51,49 +57,79 @@ export class LecteurComponent implements OnInit, OnDestroy {
   private token: string = '' ;
   private connected : boolean = false;
   private subscription: Subscription = new Subscription();
-
   constructor(
     private spotifyService: SpotifyService,
     private sessionService: SessionService,
     private authService: AuthService,
     public userService: UserService,
-    private cdr: ChangeDetectorRef, // Ajoutez ChangeDetectorRef ici
+    private cdr: ChangeDetectorRef,
+    private playlistService: PlaylistService
+    // Ajoutez ChangeDetectorRef ici
   ) {}
 
   ngOnInit(): void {
-    const token = localStorage.getItem('spotify_token');
-    if(token){
-      this.token= token;
-    }
-    this.spotifyService.initializePlayer(this.token);
+    this.token = localStorage.getItem('spotify_token') || '';
+
+    // Extract and store the token from the URL hash if present
+    this.extractTokenFromUrl();
+
+    // Initialize the Spotify player with the token
+    if (this.token) {
+      this.spotifyService.initializePlayer(this.token);
       this.connected = true;
+
       // Subscribe to player state changes
       this.playerStateSubscription = this.spotifyService.playerState$.subscribe(state => {
         if (state) {
           this.updateTrackState(state);
         }
       });
+      this.playlistService.playlist$.subscribe((playlist) => {
+        this.playlist = playlist;
+        console.log('Updated playlist:', playlist);
+      });
 
       // Load all sessions
       this.loadSessions();
-        this.subscription = this.sessionService.session$.subscribe(session => {
-          this.session = session;
-          if (session) {
-            // Effectuer les opérations nécessaires lorsque la session change
-            console.log('Session updated in LecteurComponent:', session);
-          }
-        });
-      
+      this.subscription = this.sessionService.session$.subscribe(session => {
+        this.session = session;
+        if (session) {
+          // Effectuer les opérations nécessaires lorsque la session change
+          console.log('Session updated in LecteurComponent:', session);
+        }
+      });
+
       // Get initial player state
       this.spotifyService.getCurrentPlaybackState().subscribe(state => {
         if (state) {
           this.updateTrackState(state);
         }
       });
-    
+    } else {
+      // Redirect to Spotify login if no token is found
+      this.redirectToSpotifyLogin();
+    }
   }
 
-  
+  private redirectToSpotifyLogin() {
+    const authUrl = `https://accounts.spotify.com/authorize?response_type=token&client_id=${this.clientId}&scope=${encodeURIComponent(this.scopes.join(' '))}&redirect_uri=${encodeURIComponent(this.redirectUri)}`;
+    window.location.href = authUrl;
+  }
+
+  private extractTokenFromUrl(): void {
+    const hashParams = this.getHashParams();
+    const accessToken = hashParams['access_token'];
+    
+    if (accessToken) {
+      // Store the token in localStorage
+      localStorage.setItem('spotify_token', accessToken);
+      this.token = accessToken;
+      console.log('Spotify access token stored:', accessToken);
+
+      // Optionally remove the hash from the URL for a cleaner look
+      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+    }
+  }
   
 
   ngOnDestroy(): void {
@@ -134,10 +170,22 @@ export class LecteurComponent implements OnInit, OnDestroy {
         filePath: track.uri,
         duration_ms: track.duration_ms
       };
+
       this.sessionService.addMusicToSession(this.selectedSessionId, music).subscribe((data: any) => {
-        this.playlist = data.musics
+        this.playlist = data.musics;
+
+        // Add track to shared playlist
+        const trackDTO: TrackDTO = {
+          title: track.name,
+          image: track.album.images[0]?.url,
+          artist: track.artists[0]?.name,
+          filePath: track.uri,
+          duration_ms: track.duration_ms
+        };
+        this.playlistService.addTrack(trackDTO);
+
         if (this.playlist.length === 1) {
-          this.playPlaylistTrack(this.playlist[0],0); // Sélectionner la première piste ajoutée
+          this.playPlaylistTrack(this.playlist[0], 0); // Sélectionner la première piste ajoutée
         }
       });
     }

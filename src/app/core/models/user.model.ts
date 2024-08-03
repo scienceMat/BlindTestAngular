@@ -1,7 +1,8 @@
 export interface User {
-    id: number;
-    userName: string;
-    password: string;
-    isAdmin: boolean;
-    score: number;
+  id: number;
+  userName: string;
+  password: string;
+  isAdmin: boolean;
+  score?: number;
+  ready?: boolean;
   }

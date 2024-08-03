@@ -1,4 +1,3 @@
-// user.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,31 +5,34 @@ import { UserService } from '@services/user.service';
 import { SessionService } from '@services/session.service';
 import { WebSocketService } from '@services/web-socket.service';
 import { AuthService } from '@services/auth.service';
+import { Session } from '../../core/models/session.model';
+import { User } from '../../core/models/user.model';
+import { SelectSessionComponent } from '../../shared/components/SelectSession/select-session.component';
 
 @Component({
   selector: 'app-user',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,SelectSessionComponent],
   providers: [UserService, SessionService, WebSocketService],
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.css']
+  styleUrls: ['./user.component.css'],
 })
 export class UserComponent implements OnInit {
   userName: string = '';
   selectedSessionId: number | null = null;
-  session: any = null;
+  session: Session | null = null;
   hasBuzzed: boolean = false;
   title: string = '';
   artist: string = '';
-  sessions: any[] = [];
+  sessions: Session[] = [];
   timeRemaining: number | null = null;
   intervalId: any = null;
-  userId: number | null | undefined; // Example user ID, you might want to get this dynamically
+  userId: number | undefined ;
   sessionStarted: boolean = false;
   sessionPaused: boolean = false;
   showRanking: boolean = false;
   ranking: any[] = [];
-  showSubmitButton: boolean = true; // Nouvelle variable pour gérer la visibilité du bouton
+  showSubmitButton: boolean = true;
 
   constructor(
     public userService: UserService,
@@ -40,38 +42,46 @@ export class UserComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadSessions();
-    this.userId = this.authService.currentUserValue?.id;    if (this.userId) {
+    this.userId = this.authService.currentUserValue?.id;
+    if (this.userId) {
       this.checkSession();
     }
+    this.loadSessions();
     this.initializeWebSocketConnection();
+    this.sessionService.session$
   }
 
   loadSessions() {
-    this.sessionService.getAllSessions().subscribe(response => {
+    this.sessionService.getAllSessions().subscribe((response) => {
       this.sessions = response;
     });
   }
 
   createUser() {
     const user = { userName: this.userName };
-    this.userService.createUser(user).subscribe(response => {
+    this.userService.createUser(user).subscribe((response) => {
       this.userService.setUserId(response.id);
       this.userId = response.id;
       console.log('User created:', response);
     });
   }
 
-  joinSession() {
-    if (this.userId && this.selectedSessionId) {
-      this.sessionService.joinSession(this.selectedSessionId, this.userId).subscribe(response => {
-        this.sessionService.setSessionId(response.id);
-        this.session = response;
-        this.sessionStarted = this.session.status === 'in-progress';
-        this.startTimer();
-        console.log('Joined session:', response);
-      });
-    }
+  onSessionSelected(session: Session) {
+    this.selectedSessionId = session.id;
+    this.sessionService.setSession(session); // Mettre à jour la session dans le service
+    this.saveSessionConnection(session.id); // Save the connection to local storage
+    console.log('Selected session:', session);
+  }
+
+  private saveSessionConnection(sessionId: number) {
+    localStorage.setItem('connectedSessionId', sessionId.toString());
+  }
+
+  onSessionJoined(session: Session) {
+    this.selectedSessionId = session.id;
+    this.session = session;
+    this.saveSessionConnection(session.id);
+    console.log('Session joined:', session);
   }
 
   buzz() {
@@ -83,29 +93,30 @@ export class UserComponent implements OnInit {
       const answer = {
         userId: this.userId,
         title: title,
-        artist: artist
+        artist: artist,
       };
-      this.sessionService.submitAnswer(this.session.id, answer).subscribe(response => {
-        console.log('Answer submitted', response);
-        this.hasBuzzed = false; // Disable further answers
-        this.showSubmitButton = false; // Masquer le bouton après la soumission
-      }, error => {
-        console.error('Error submitting answer', error);
-      });
+      this.sessionService.submitAnswer(this.session.id, answer).subscribe(
+        (response) => {
+          console.log('Answer submitted', response);
+          this.hasBuzzed = false; // Disable further answers
+          this.showSubmitButton = false; // Hide the button after submission
+        },
+        (error) => {
+          console.error('Error submitting answer', error);
+        }
+      );
     }
   }
 
   checkSession() {
-    const sessionId = this.sessionService.getSessionId();
-    if (sessionId) {
-      this.sessionService.getAllSessions().subscribe(sessions => {
-        this.session = sessions.find((session: any) => session.id === sessionId) || null;
-        if (this.session) {
-          this.sessionStarted = this.session.status === 'in-progress';
-          this.startTimer();
-        }
-      });
-    }
+    this.sessionService.getSessionByUser(this.userId!).subscribe((session) => {
+      if (session) {
+        this.session = session;
+        this.sessionService.setSession(session);
+        this.sessionStarted = this.session.status === 'in-progress';
+        this.startTimer();
+      }
+    });
   }
 
   startTimer() {
@@ -137,17 +148,17 @@ export class UserComponent implements OnInit {
             setTimeout(() => {
               this.showRanking = false;
               this.sessionPaused = false;
-              this.showSubmitButton = true; // Réafficher le bouton au début du prochain tour
+              this.showSubmitButton = true; // Show the button at the start of the next round
             }, 5000);
           } else if (message === 'NEXT_MUSIC') {
             this.sessionStarted = true;
             this.sessionPaused = false;
             this.hasBuzzed = false; // Allow buzzing for the new music
-            this.showSubmitButton = true; // Réafficher le bouton au début du prochain tour
+            this.showSubmitButton = true; // Show the button at the start of the next round
           } else if (message === 'SESSION_FINISHED') {
             this.sessionStarted = false;
             this.sessionPaused = false;
-            // Afficher le score final
+            // Display the final score
           } else {
             try {
               const scores = JSON.parse(message);

@@ -36,8 +36,17 @@ export class SessionService {
     return this.http.post(`${this.apiUrl}/${sessionId}/join`, { id: userId });
   }
 
+  leaveSession(sessionId: number, userId: number): Observable<Session> {
+    return this.http.post<Session>(`${this.apiUrl}/${sessionId}/leave`, { userId });
+}
+
   startSession(sessionId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionId}/start`, {});
+  }
+
+  
+  getSessionByUser(userId: number): Observable<Session> {
+    return this.http.get<Session>(`${this.apiUrl}/user/${userId}`);
   }
 
   nextQuestion(sessionId: number): Observable<any> {

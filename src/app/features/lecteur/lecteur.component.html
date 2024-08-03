@@ -5,7 +5,7 @@
     <button (click)="search()" class="btn-shared btn-primary mb-3.5">Search</button>
   </div>
 
-  <app-display-playlist [playlist]="playlist"></app-display-playlist>
+  <!-- <app-display-playlist [playlist]="playlist"></app-display-playlist> -->
 
   <div *ngIf="searchResults.length > 0">
     <h2>Search Results</h2>
@@ -18,7 +18,7 @@
     </ul>
 </div>
 
-  <div *ngIf="playlist.length > 0">
+  <!-- <div *ngIf="playlist.length > 0">
     <h2>Playlist</h2>
     <ul>
       <li *ngFor="let track of playlist; let i = index" (click)="playPlaylistTrack(track, i)">
@@ -26,7 +26,7 @@
         <span>{{ track.title }} by {{ track.artist }}</span>
       </li>
     </ul>
-  </div>
+  </div> -->
 
   <div *ngIf="currentTrack">
     <h2>{{ currentTrack.title }} by {{ currentTrack.artist }}</h2>
@@ -44,15 +44,9 @@
     </div>
   </div>
 
-
-  <div>
-    <button (click)="startSession()"  class="btn-shared btn-primary mb-3.5">Start Session</button>
-    <button (click)="nextQuestion()"  class="btn-shared btn-primary mb-3.5">Next Question</button>
-  </div>
-
-  <div>
+  <!-- <div>
     <h2>Submit Answer</h2>
     <app-input-text type="text" placeholder="Title" #title></app-input-text>
     <app-input-text type="text" placeholder="Artist" #artist></app-input-text>
     <button (click)="submitAnswer(title.value, artist.value)"  class="btn-shared btn-primary mb-3.5">Submit</button>
-  </div>
+  </div> -->
