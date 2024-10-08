@@ -82,6 +82,16 @@
 
 }
 
+.btn-shared[disabled] {
+    background: #e0e0e0; /* Light gray background for disabled state */
+    color: #a0a0a0; /* Light gray text color */
+    cursor: not-allowed; /* Change cursor to indicate non-interactivity */
+    border-color: #d0d0d0; /* Lighter border color */
+    box-shadow: none; /* Remove any box shadow */
+    opacity: 0.6; /* Reduce opacity for a more muted look */
+    pointer-events: none; /* Ensure the button is not interactive */
+}
+
 .form-container {
     display: flex;
     flex-direction: column;

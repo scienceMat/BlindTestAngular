@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class UserService {
   private apiUrl = 'http://localhost:8080/users';
   private userId: number | null = null;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   createUser(user: { userName: string }): Observable<any> {
     return this.http.post(this.apiUrl, user);
@@ -41,5 +42,15 @@ export class UserService {
     } catch (e) {
       return false;
     }
+  }
+
+  getUserById(id: number) {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.get(`${this.apiUrl}/${id}`, { headers });
+  }
+
+  getAllUsers() {
+    const headers = this.authService.getAuthHeaders();
+    return this.http.get(this.apiUrl, { headers });
   }
 }

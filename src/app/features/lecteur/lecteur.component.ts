@@ -3,43 +3,46 @@ import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SpotifyService } from '@services/spotifyService.service';
-import { Subscription } from 'rxjs';
+import { Subscription,switchMap, catchError, of,timer  } from 'rxjs';
 
 import { Session } from '../../core/models/session.model';
-import { TrackDTO } from '../../core/models/trackDTO';
+import { TrackDTO, SpotifyPlaybackState } from '../../core/models/trackDTO';
 import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserService } from '../../core/services/user.service';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
 import { DisplayPlaylistComponent } from '../admin/components/display-playlist/display-playlist.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
-import { PlaylistService } from '../../core/services/utils/playlistService'; // Import the service
+import { PlaylistService } from '../../core/services/utils/playlistService';
 
 @Component({
   selector: 'app-lecteur',
   templateUrl: './lecteur.component.html',
   standalone: true,
   styleUrls: ['./lecteur.component.css'],
-  imports: [CommonModule,
-     FormsModule,
-      RouterModule,
-       LoginButton,
-        DisplayPlaylistComponent,
-         InputTextComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    LoginButton,
+    DisplayPlaylistComponent,
+    InputTextComponent,
+  ],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
+  @Input() session: Session | null = null;
+  @Input() currentTrack: TrackDTO | null = null; 
   trackId = '3n3Ppam7vgaVa1iaRUc9Lp'; // Example track ID
-  currentTrack: TrackDTO | null = null;
-  @Input() session: Session | null = null; // Ajouter une propriété @Input() pour la session sélectionnée
   isPlaying: boolean = false;
   searchResults: any[] = [];
   searchTerm: string = '';
   playlist: TrackDTO[] = [];
   sessions: any[] = [];
   timeProgress: number = 0;
-  trackDuration: number = 0; // Initialiser à 0 par défaut
+  trackDuration: number = 0;
   selectedSessionId: number | null = null;
-  userId: number = 1; // Example user ID, you might want to get this dynamically
+  userId: number = 1; // Example user ID
+
   private clientId = '909dc01e3aee4ec4b72b8738a1ea7f1d';
   private redirectUri = 'http://localhost:4200/callback';
   private scopes = [
@@ -49,14 +52,15 @@ export class LecteurComponent implements OnInit, OnDestroy {
     'user-modify-playback-state',
     'user-read-playback-state',
     'user-read-currently-playing',
-    'streaming'
+    'streaming',
   ];
-  private playerStateSubscription: Subscription = new Subscription();
+
+  private subscriptions = new Subscription();
   private animationFrameId: any;
   private lastUpdateTime: number = 0;
-  private token: string = '' ;
-  private connected : boolean = false;
-  private subscription: Subscription = new Subscription();
+  private token: string = '';
+  private playerInitialized: boolean = false;
+
   constructor(
     private spotifyService: SpotifyService,
     private sessionService: SessionService,
@@ -64,50 +68,66 @@ export class LecteurComponent implements OnInit, OnDestroy {
     public userService: UserService,
     private cdr: ChangeDetectorRef,
     private playlistService: PlaylistService
-    // Ajoutez ChangeDetectorRef ici
   ) {}
 
   ngOnInit(): void {
     this.token = localStorage.getItem('spotify_token') || '';
+    console.log('Validating Spotify token:', this.token); // Log pour vérifier le token
 
     // Extract and store the token from the URL hash if present
     this.extractTokenFromUrl();
-
-    // Initialize the Spotify player with the token
-    if (this.token) {
+  
+    // Initialize the Spotify player with the token if not already done
+    if (this.token && !this.playerInitialized) {
       this.spotifyService.initializePlayer(this.token);
-      this.connected = true;
-
+      this.playerInitialized = true;
+  
       // Subscribe to player state changes
-      this.playerStateSubscription = this.spotifyService.playerState$.subscribe(state => {
-        if (state) {
-          this.updateTrackState(state);
-        }
-      });
-      this.playlistService.playlist$.subscribe((playlist) => {
-        this.playlist = playlist;
-        console.log('Updated playlist:', playlist);
-      });
-
+      this.subscriptions.add(
+        this.spotifyService.playerState$.subscribe(state => {
+          if (state) {
+            this.updateTrackState(state);
+          }
+        })
+      );
+  
+      // Subscribe to playlist changes
+      this.subscriptions.add(
+        this.playlistService.playlist$.subscribe(playlist => {
+          this.playlist = playlist;
+          console.log('Updated playlist:', playlist);
+        })
+      );
+  
       // Load all sessions
       this.loadSessions();
-      this.subscription = this.sessionService.session$.subscribe(session => {
-        this.session = session;
-        if (session) {
-          // Effectuer les opérations nécessaires lorsque la session change
-          console.log('Session updated in LecteurComponent:', session);
-        }
-      });
-
+  
+      // Subscribe to session changes
+      this.subscriptions.add(
+        this.sessionService.session$.subscribe(session => {
+          this.session = session;
+          if (session) {
+            console.log('Session updated in LecteurComponent:', session);
+          }
+        })
+      );
+  
       // Get initial player state
       this.spotifyService.getCurrentPlaybackState().subscribe(state => {
         if (state) {
           this.updateTrackState(state);
         }
       });
-    } else {
+    } else if (!this.token) {
       // Redirect to Spotify login if no token is found
       this.redirectToSpotifyLogin();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe(); // Unsubscribe from all subscriptions
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
     }
   }
 
@@ -119,7 +139,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
   private extractTokenFromUrl(): void {
     const hashParams = this.getHashParams();
     const accessToken = hashParams['access_token'];
-    
+
     if (accessToken) {
       // Store the token in localStorage
       localStorage.setItem('spotify_token', accessToken);
@@ -130,25 +150,12 @@ export class LecteurComponent implements OnInit, OnDestroy {
       window.history.pushState("", document.title, window.location.pathname + window.location.search);
     }
   }
-  
 
-  ngOnDestroy(): void {
-    if (this.playerStateSubscription) {
-      this.playerStateSubscription.unsubscribe();
-    }
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
-    this.connected = false;
-  }
-
-  loadSessions() {
+  private loadSessions() {
     this.sessionService.getAllSessions().subscribe(response => {
       this.sessions = response;
     });
   }
-
-
 
   search() {
     if (this.searchTerm) {
@@ -183,10 +190,6 @@ export class LecteurComponent implements OnInit, OnDestroy {
           duration_ms: track.duration_ms
         };
         this.playlistService.addTrack(trackDTO);
-
-        if (this.playlist.length === 1) {
-          this.playPlaylistTrack(this.playlist[0], 0); // Sélectionner la première piste ajoutée
-        }
       });
     }
   }
@@ -197,42 +200,52 @@ export class LecteurComponent implements OnInit, OnDestroy {
       console.error('Session ID is null');
       return;
     }
-
-    this.spotifyService.play({ uris: [uri] }).subscribe(() => {
-      this.isPlaying = true;
-
-      // Récupérer l'état actuel du lecteur pour obtenir la durée de la piste
-      this.spotifyService.getCurrentTrack().subscribe(track => {
+    console.log('Playing track:', uri);
+  
+    this.spotifyService.play({ uris: [uri] })
+      .pipe(
+        // Wait for a short delay to ensure the track has time to start
+        switchMap(() => {
+          this.isPlaying = true;
+          return timer(500); // Wait for 500 milliseconds before checking the track
+        }),
+        // After delay, fetch the current track info
+        switchMap(() => this.spotifyService.getCurrentTrack()),
+        // Handle any errors that occur during the process
+        catchError(error => {
+          console.error('Error playing track or getting current track:', error);
+          return of(null); // Return a null observable in case of error
+        })
+      )
+      .subscribe(track => {
         if (!track) {
-          console.error('Track is null');
+          console.error('Track is null or could not be retrieved');
           return;
         }
-
+  
+        this.currentTrack = track;
         this.trackDuration = track.duration_ms || 0;
-        this.startProgressBar(); // Démarrer la barre de progression dès que la piste commence à jouer
-
-        // Mettre à jour l'index de la musique actuelle sur le back-end
-        this.sessionService.updateCurrentMusicIndex(sessionId, trackIndex).subscribe(() => {
-          console.log('Current music index updated');
-        }, error => {
-          console.error('Error updating current music index:', error);
-        });
-      }, error => {
-        console.error('Error getting current track:', error);
+        this.startProgressBar();
+  
+        // Update the current music index on the server
+        this.sessionService.updateCurrentMusicIndex(sessionId, trackIndex).subscribe(
+          () => {
+            console.log('Current music index updated');
+          },
+          error => {
+            console.error('Error updating current music index:', error);
+          }
+        );
       });
-    }, error => {
-      console.error('Error playing track:', error);
-    });
   }
 
-
   playPlaylistTrack(track: TrackDTO, trackIndex: number) {
-    if(!this.startSession){
-
+    const sessionId = this.session?.id;
+    if (this.session?.status === 'in-progress') {
       this.currentTrack = track;
-      this.trackDuration = track.duration_ms || 0; // Mettre à jour la durée de la piste, 0 si non définie
+      this.trackDuration = track.duration_ms || 0;
       this.timeProgress = 0;
-      this.playTrack(track.filePath, trackIndex); // Passez l'index de la piste ici
+      this.playTrack(track.filePath, trackIndex);
     }
   }
 
@@ -242,7 +255,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
       }
-    }, error => {
+    }, (error) => {
       console.error('Error pausing track:', error);
     });
   }
@@ -257,18 +270,56 @@ export class LecteurComponent implements OnInit, OnDestroy {
   }
 
   nextTrack() {
-    this.spotifyService.nextTrack().subscribe();
+    if (!this.playlist || this.playlist.length === 0) {
+      console.error('Playlist is empty or not defined.');
+      return;
+    }
+
+    const currentIndex = this.playlist.findIndex(track => track.filePath === this.currentTrack?.filePath);
+    if (currentIndex === -1) {
+      console.error('Current track is not found in the playlist.');
+      return;
+    }
+
+    const nextIndex = (currentIndex + 1) % this.playlist.length;
+    const nextTrack = this.playlist[nextIndex];
+
+    if (nextTrack && this.session) {
+      this.sessionService.nextTrack(this.session.id).subscribe(() => {
+        this.playTrack(nextTrack.filePath, nextIndex);
+      });
+    }
   }
 
   previousTrack() {
-    this.spotifyService.previousTrack().subscribe();
+    if (!this.playlist || this.playlist.length === 0) {
+      console.error('Playlist is empty or not defined.');
+      return;
+    }
+
+    const currentIndex = this.playlist.findIndex(track => track.filePath === this.currentTrack?.filePath);
+    if (currentIndex === -1) {
+      console.error('Current track is not found in the playlist.');
+      return;
+    }
+
+    const prevIndex = (currentIndex - 1 + this.playlist.length) % this.playlist.length;
+    const prevTrack = this.playlist[prevIndex];
+
+    if (prevTrack && this.session) {
+      this.sessionService.previousTrack(this.session.id).subscribe(() => {
+        this.playTrack(prevTrack.filePath, prevIndex);
+      });
+    }
   }
 
   startSession() {
     const sessionId = this.sessionService.getSessionId();
     if (sessionId) {
       this.sessionService.startSession(sessionId).subscribe((response) => {
-        this.sessionService.setSession(response); // Mettre à jour la session dans le service
+        this.sessionService.setSession(response);
+        if(this.playlist.length >0){
+          this.currentTrack = this.playlist[0]        }
         console.log('Session started:', response);
       });
     }
@@ -298,48 +349,63 @@ export class LecteurComponent implements OnInit, OnDestroy {
     }
   }
 
-
-
-  private mapToTrackDTO(state: any): TrackDTO | null {
-    if (state && state.track_window && state.track_window.current_track) {
-      const track = state.track_window.current_track;
-      return {
-        title: track.name,
-        image: track.album.images[0]?.url,
-        artist: track.artists[0]?.name,
-        filePath: track.uri,
-        duration_ms: track.duration_ms
-      };
-    }
-    return null;
+  private mapCurrentPlaybackResponseToPlaybackState(
+    response: SpotifyApi.CurrentPlaybackResponse
+  ): SpotifyPlaybackState {
+    return {
+      paused: !response.is_playing,
+      position: response.progress_ms || 0,
+      duration: response.item?.duration_ms || 0,
+      track_window: {
+        current_track: {
+          name: response.item?.name || '',
+          album: {
+            images: response.item?.album.images || [],
+            name: response.item?.album.name || '',
+            // Populate other necessary album fields
+          },
+          artists: response.item?.artists.map((artist) => ({
+            name: artist.name,
+            // Populate other necessary artist fields
+          })) || [],
+          uri: response.item?.uri || '',
+          duration_ms: response.item?.duration_ms || 0,
+          // Populate other necessary track fields
+        },
+      },
+    };
   }
 
-  private updateTrackState(state: any) {
-    const trackDTO = this.mapToTrackDTO(state);
-    if (trackDTO) {
-      this.currentTrack = trackDTO;
-      this.isPlaying = !state.paused;
-      this.trackDuration = trackDTO.duration_ms || 0; // Mettre à jour la durée de la piste, 0 si non définie
-      this.timeProgress = state.position || 0; // Mettre à jour la position de la piste, 0 si non définie
-      this.lastUpdateTime = performance.now();
-      if (this.isPlaying) {
-        this.startProgressBar();
-      } else {
-        if (this.animationFrameId) {
-          cancelAnimationFrame(this.animationFrameId);
-        }
-      }
+  private updateTrackState(state: SpotifyApi.CurrentPlaybackResponse) {
+    const playbackState = this.mapCurrentPlaybackResponseToPlaybackState(state);
+  
+    const trackDTO = this.mapToTrackDTO(playbackState.track_window.current_track);
+  
+    this.currentTrack = trackDTO;
+    this.isPlaying = !playbackState.paused;
+    this.trackDuration = trackDTO.duration_ms || 0;
+    this.timeProgress = playbackState.position || 0;
+    this.lastUpdateTime = performance.now();
+  
+    if (this.isPlaying) {
+      this.startProgressBar();
     } else {
-      console.error('Invalid state object', state);
-      this.currentTrack = null;
-      this.isPlaying = false;
-      this.trackDuration = 0;
-      this.timeProgress = 0;
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
       }
     }
   }
+
+  mapToTrackDTO(currentTrack: any): TrackDTO {
+    // Map only necessary fields
+    return {
+      title: currentTrack.name,
+      image: currentTrack.album.images[0]?.url || '', // Provide default empty string if no images
+      artist: currentTrack.artists.map((artist: any) => artist.name).join(', '), // Combine artist names
+      filePath: currentTrack.uri,
+      duration_ms: currentTrack.duration_ms || 0 // Default to 0 if undefined
+    };
+}
 
   private startProgressBar() {
     const updateProgress = () => {
@@ -357,7 +423,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
         cancelAnimationFrame(this.animationFrameId);
       }
 
-      this.cdr.detectChanges(); // Ajoutez ceci pour forcer la détection des changements
+      this.cdr.detectChanges();
     };
     this.animationFrameId = requestAnimationFrame(updateProgress);
   }
@@ -374,12 +440,12 @@ export class LecteurComponent implements OnInit, OnDestroy {
   private playNextTrack() {
     if (this.playlist && this.playlist.length > 0) {
       const currentIndex = this.session?.currentMusicIndex || 0;
-      const nextIndex = (currentIndex + 1) % this.playlist.length; // Boucle à travers la playlist
+      const nextIndex = (currentIndex + 1) % this.playlist.length;
       const nextTrack = this.playlist[nextIndex];
 
       if (nextTrack && this.session) {
         this.playTrack(nextTrack.filePath, nextIndex);
-        this.sessionService.updateCurrentMusicIndex(this.session.id, nextIndex).subscribe(); // Mise à jour de l'index sur le serveur
+        this.sessionService.updateCurrentMusicIndex(this.session.id, nextIndex).subscribe();
       }
     }
   }

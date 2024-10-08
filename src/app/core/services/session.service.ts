@@ -37,14 +37,16 @@ export class SessionService {
   }
 
   leaveSession(sessionId: number, userId: number): Observable<Session> {
-    return this.http.post<Session>(`${this.apiUrl}/${sessionId}/leave`, { userId });
+    return this.http.post<Session>(`${this.apiUrl}/${sessionId}/leave`, { id: userId });
 }
 
   startSession(sessionId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionId}/start`, {});
   }
 
-  
+  stopSession(sessionId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${sessionId}/stop`, {});
+  }
   getSessionByUser(userId: number): Observable<Session> {
     return this.http.get<Session>(`${this.apiUrl}/user/${userId}`);
   }
@@ -90,6 +92,15 @@ export class SessionService {
     return this.http.get<Session>(`${this.apiUrl}/${sessionId}`);
   }
 
+  nextTrack(sessionId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${sessionId}/nextTrack`, {});
+  }
+
+  // Add this method to go to the previous track
+  previousTrack(sessionId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${sessionId}/previousTrack`, {});
+  }
+  
   getSessionId(): number | null {
     if (!this.sessionId) {
       const storedId = localStorage.getItem('sessionId');

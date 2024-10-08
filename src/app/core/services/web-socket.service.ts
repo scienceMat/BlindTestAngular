@@ -42,6 +42,16 @@ export class WebSocketService {
     });
   }
 
+  subscribeToSession(sessionId: number): Observable<string> {
+    return new Observable((subscriber) => {
+      const subscription = this.stompClient.subscribe(`/topic/session/${sessionId}`, (message: IMessage) => {
+        subscriber.next(message.body);
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
   disconnectSocket() {
     if (this.stompClient) {
       this.stompClient.deactivate({ force: true });

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { BehaviorSubject, Observable, from } from 'rxjs';
-import { SpotifyPlaybackState } from '../models/SpotifyPlayBackState.model'; // Importez l'interface
+import { SpotifyPlaybackState } from '../models/SpotifyPlayBackState.model';
+import {TrackDTO} from '../models/trackDTO';
 
 @Injectable({
   providedIn: 'root',
@@ -9,7 +10,7 @@ import { SpotifyPlaybackState } from '../models/SpotifyPlayBackState.model'; // 
 export class SpotifyService {
   private spotifyApi: SpotifyWebApi.SpotifyWebApiJs;
   private player: any;
-  private playerStateSubject = new BehaviorSubject<SpotifyPlaybackState | null>(null);
+  private playerStateSubject = new BehaviorSubject<SpotifyApi.CurrentPlaybackResponse | null>(null);
 
   playerState$ = this.playerStateSubject.asObservable();
 
@@ -18,8 +19,11 @@ export class SpotifyService {
   }
 
   setAccessToken(token: string) {
-    this.spotifyApi.setAccessToken(token);
-    localStorage.setItem('spotify_token', token); // Enregistrez le token dans localStorage
+    if(!!token){
+      this.spotifyApi.setAccessToken(token);
+      localStorage.setItem('spotify_token', token);
+    }
+   
   }
 
   getUserPlaylists(): Observable<any> {
@@ -37,7 +41,12 @@ export class SpotifyService {
   }
 
   initializePlayer(token: string) {
-    this.setAccessToken(token); // Enregistrez le token en utilisant setAccessToken
+    if (this.player) {
+      console.log('Spotify Player already initialized');
+      return; // Prevent re-initialization
+    }
+
+    this.setAccessToken(token);
     (window as any).onSpotifyWebPlaybackSDKReady = () => {
       this.player = new (window as any).Spotify.Player({
         name: 'Angular Spotify Player',
@@ -51,7 +60,7 @@ export class SpotifyService {
       this.player.addListener('playback_error', (error: { message: string }) => { console.error(error.message); });
 
       // Playback status updates
-      this.player.addListener('player_state_changed', (state: SpotifyPlaybackState) => {
+      this.player.addListener('player_state_changed', (state: SpotifyApi.CurrentPlaybackResponse) => {
         console.log(state);
         this.playerStateSubject.next(state);
       });
@@ -77,22 +86,26 @@ export class SpotifyService {
       });
     };
 
-    const script = document.createElement('script');
-    script.src = 'https://sdk.scdn.co/spotify-player.js';
-    document.body.appendChild(script);
+    // Load the Spotify Player script dynamically
+    if (!document.getElementById('spotify-player')) {
+      const script = document.createElement('script');
+      script.id = 'spotify-player';
+      script.src = 'https://sdk.scdn.co/spotify-player.js';
+      document.body.appendChild(script);
+    }
   }
 
   play(options: SpotifyApi.PlayParameterObject): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
     const token = localStorage.getItem('spotify_token');
     if (deviceId && token) {
-      this.setAccessToken(token); // Assurez-vous que le token est défini
+      this.setAccessToken(token);
       return from(fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
         method: 'PUT',
         body: JSON.stringify(options),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Ajoutez le token dans les en-têtes
+          'Authorization': `Bearer ${token}`
         },
       }));
     } else {
@@ -139,10 +152,24 @@ export class SpotifyService {
     }
   }
 
-  getCurrentTrack(): Observable<SpotifyApi.TrackObjectFull> {
-    return from(this.spotifyApi.getMyCurrentPlayingTrack().then(response => response.item as SpotifyApi.TrackObjectFull));
+  getCurrentTrack(): Observable<TrackDTO> {
+    return from(
+      this.spotifyApi.getMyCurrentPlayingTrack().then((response) => {
+        const track = response.item as SpotifyApi.TrackObjectFull;
+        return this.mapSpotifyTrackToDTO(track);
+      })
+    );
   }
-  
+
+   mapSpotifyTrackToDTO(track: SpotifyApi.TrackObjectFull): TrackDTO {
+    return {
+      title: track.name,
+      image: track.album.images[0]?.url || '',  // Use an empty string as a fallback
+      artist: track.artists[0]?.name || '',     // Use an empty string as a fallback
+      filePath: track.uri,
+      duration_ms: track.duration_ms
+    };
+  }
 
   nextTrack(): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
@@ -174,7 +201,7 @@ export class SpotifyService {
         }
       }));
     } else {
-      const errorMsg = 'Device ID ou token non trouvé';
+      const errorMsg = 'Device ID or token not found';
       console.error(errorMsg);
       return from(Promise.reject(errorMsg));
     }
@@ -183,7 +210,7 @@ export class SpotifyService {
   getCurrentPlaybackState(): Observable<SpotifyApi.CurrentPlaybackResponse> {
     const token = localStorage.getItem('spotify_token');
     if (token) {
-      this.setAccessToken(token); // Assurez-vous que le token est défini
+      this.setAccessToken(token);
       return from(this.spotifyApi.getMyCurrentPlaybackState());
     } else {
       return from(Promise.reject('No token provided'));

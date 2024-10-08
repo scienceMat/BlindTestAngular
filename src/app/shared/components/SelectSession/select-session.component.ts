@@ -6,6 +6,8 @@ import { SessionService } from '../../../core/services/session.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Session } from '../../../core/models/session.model';
 import { User } from '../../../core/models/user.model'; // Import User model
+import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-select-session',
@@ -26,24 +28,25 @@ export class SelectSessionComponent implements OnInit {
   @Output() sessionJoined = new EventEmitter<Session>(); // New EventEmitter
 
   selectedSessionId: number | null = null;
-  userId: number | null | undefined;
+  userId: number | null = null;
   showErrorModal: boolean = false; // State to show or hide the error modal
   sessionUsers: User[] = []; // Array to hold users in the selected session
 
   constructor(
     private spotifyService: SpotifyService,
     private sessionService: SessionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
-    this.userId = this.authService.currentUserValue?.id;
+    this.userId = this.authService.currentUserValue?.id || null; // Ensure userId is explicitly set to null if undefined
     this.initializeSession();
   }
 
   initializeSession() {
     // Check if the user is already part of a session
-    if (this.userId) {
+    if (this.userId !== null) {
       this.sessionService.getSessionByUser(this.userId).subscribe(
         (session) => {
           if (session) {
@@ -83,64 +86,89 @@ export class SelectSessionComponent implements OnInit {
   }
 
   joinSession() {
-    // Récupère l'ID de l'utilisateur connecté actuel
-    const userId = this.authService.currentUserValue?.id;
-    const user = this.authService.currentUserValue;
+    // Check if the userId and selectedSessionId are valid numbers
+    const userId = this.userId;
+    const sessionId = this.selectedSessionId;
 
-    // Vérifie si l'ID de l'utilisateur et l'ID de la session sélectionnée sont valides
-    if (userId !== undefined && this.selectedSessionId !== null) {
-        // Vérifie si l'utilisateur est déjà dans la session sélectionnée
-        this.sessionService.getSession(this.selectedSessionId).subscribe(
-            (selectedSession) => {
-                if (selectedSession.users.some(u => u.id === userId)) {
-                    // L'utilisateur est déjà dans cette session, donc nous allons le retirer
-                    console.log('User is already in this session:', selectedSession);
-                    this.leaveSession(userId, this.selectedSessionId as number);
-                } else {
-                    // L'utilisateur n'est pas encore dans cette session, donc nous allons le rejoindre
-                    this.joinSelectedSession(userId);
-                }
-            },
-            (error) => {
-                // Gère les erreurs potentielles lors de la récupération de la session sélectionnée
-                console.log('Error retrieving selected session:', error);
-            }
-        );
+    if (userId !== null && sessionId !== null) {
+      // Verify if the user is already in the selected session
+      this.sessionService.getSession(sessionId).subscribe(
+        (selectedSession) => {
+          if (selectedSession.users.some(u => u.id === userId)) {
+            // User is already in this session, navigate directly
+            console.log('User is already in this session:', selectedSession);
+            this.router.navigate(['/session-screen', sessionId]);
+          } else {
+            // User is not in this session yet, proceed to join
+            this.joinSelectedSession(userId);
+          }
+        },
+        (error) => {
+          console.log('Error retrieving selected session:', error);
+        }
+      );
     } else {
-        console.error('User ID or Session ID is invalid');
+      console.error('User ID or Session ID is invalid');
     }
-}
+  }
 
-joinSelectedSession(userId: number) {
-  this.sessionService.joinSession(this.selectedSessionId as number, userId).subscribe(
-      (response) => {
-          // Met à jour l'ID de la session courante dans le service
-          this.sessionService.setSessionId(response.id);
-          console.log('Joined session:', response);
+  joinSelectedSession(userId: number) {
+    if (this.selectedSessionId === null) {
+      console.error('No session selected');
+      return;
+    }
+
+    const sessionId = this.selectedSessionId; // Ensure sessionId is a valid number
+
+    // Attempt to join the session
+    this.sessionService.joinSession(sessionId, userId).pipe(
+      tap(response => {
+        console.log('Join session response:', response);
+
+        // Update the current session ID in the session service
+        this.sessionService.setSessionId(response.id);
+      }),
+      // Switch to another observable that fetches the session details
+      switchMap(() => this.sessionService.getSession(sessionId))
+    ).subscribe(
+      (session) => {
+        // Verify that the user has been successfully added to the session
+        if (session && session.users.some(participant => participant.id === userId)) {
+          // Store the connected session ID in local storage
+          localStorage.setItem('connectedSessionId', sessionId.toString());
+
+          // Emit the joined session event
+          this.sessionJoined.emit(session);
+
+          // Navigate to the session screen after ensuring the user is part of the session
+          console.log('User successfully joined and verified in session:', session);
+          this.router.navigate(['/session-screen', sessionId]);
+
           this.showErrorModal = false;
-          this.sessionJoined.emit(response); // Emit the event here
-
-           // Réinitialise l'état d'erreur si réussi
+        } else {
+          console.warn('User is not yet in the session after join attempt.');
+          // Handle case where user is not in the session despite join attempt
+        }
       },
       (error) => {
-          console.log('Error joining session:', error);
-          // Vous pouvez gérer d'autres erreurs potentielles ici
+        console.error('Error during session joining or verification:', error);
       }
-  );
-}
+    );
+  }
 
-leaveSession(userId: number, sessionId: number) {
-  this.sessionService.leaveSession(sessionId, userId).subscribe(
+  leaveSession(userId: number, sessionId: number) {
+    this.sessionService.leaveSession(sessionId, userId).subscribe(
       (response) => {
-          console.log('Left session:', response);
-          // Mettre à jour l'état de l'application ou effectuer d'autres actions après avoir quitté la session
+        console.log('Left session:', response);
+        this.router.navigate(["/admin"])
+        // Update application state or perform other actions after leaving the session
       },
       (error) => {
-          console.log('Error leaving session:', error);
-          // Gérer les erreurs de sortie de la session ici
+        console.log('Error leaving session:', error);
+        // Handle session leave errors here
       }
-  );
-}
+    );
+  }
 
   // Method to close the error modal
   closeErrorModal() {

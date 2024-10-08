@@ -5,13 +5,10 @@ import { SpotifyService } from '../../core/services/spotifyService.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserService } from '../../core/services/user.service';
 import { Session } from '../../core/models/session.model';
-import { TrackDTO } from '../../core/models/trackDTO';
-import { DisplayPlaylistComponent } from './components/display-playlist/display-playlist.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
-import { LecteurComponent } from '../lecteur/lecteur.component';
 import { SelectSessionComponent } from '../../shared/components/SelectSession/select-session.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
 import { PlaylistService } from '../../core/services/utils/playlistService';
@@ -22,54 +19,71 @@ import { switchMap } from 'rxjs/operators';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
   standalone: true,
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     FormsModule,
     RouterModule,
-    DisplayPlaylistComponent,
     LoginButton,
-    LecteurComponent,
-    InputTextComponent, SelectSessionComponent],
-  providers: [UserService, SessionService, SpotifyService,InputTextComponent],
+    InputTextComponent,
+    SelectSessionComponent
+  ],
+  providers: [UserService, SessionService, SpotifyService, InputTextComponent],
 })
 export class AdminComponent implements OnInit {
   sessionName: string = '';
   sessions: Session[] = [];
-  session: Session | null = null;
   selectedSessionId: number | null = null;
-  playlist: TrackDTO[] = [];
   connected: boolean = false;
+  sessionStarted: boolean = false;
+  sessionPaused: boolean = false;
+  showRanking: boolean = false;
+  hasBuzzed: boolean = false;
 
+  ranking: any[] = [];
+  showSubmitButton: boolean = true;
   constructor(
     private authService: AuthService,
     private router: Router,
     private spotifyService: SpotifyService,
     private sessionService: SessionService,
     private cdr: ChangeDetectorRef,
-    private playlistService: PlaylistService
+    private playlistService: PlaylistService,
   ) {}
 
   ngOnInit() {
+    const params = this.getHashParams();
+
+  
     const currentUser = this.authService.currentUserValue;
     if (currentUser && currentUser.isAdmin) {
       const token = localStorage.getItem('spotify_token');
-      if (token) {
+      if (token == null) {
+        const newToken = params['access_token'];
+        this.spotifyService.setAccessToken(newToken);
+      }
+
+      if (!!token && token !== 'undefined') {
         this.connected = true;
         this.spotifyService.setAccessToken(token);
+        this.spotifyService.initializePlayer(token); // Ensure player is initialized only once
         this.loadSessions();
-
         // Check if the user is already connected to a session
-        this.checkSessionConnection(currentUser.id);
+        // this.checkSessionConnection(currentUser.id);
       } else {
         this.redirectToSpotifyLogin();
       }
     } else {
       this.router.navigate(['/login']);
     }
+  }
 
-    this.playlistService.playlist$.subscribe((playlist) => {
-      this.playlist = playlist;
-      console.log('Received playlist update in AdminComponent:', playlist);
-    });
+  private getHashParams(): { [key: string]: string } {
+    const hash = window.location.hash.substring(1);
+    return hash.split('&').reduce((acc, item) => {
+      const parts = item.split('=');
+      acc[parts[0]] = decodeURIComponent(parts[1]);
+      return acc;
+    }, {} as { [key: string]: string });
   }
 
   redirectToSpotifyLogin() {
@@ -119,59 +133,14 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  joinSession() {
-    const userId = this.authService.currentUserValue?.id;
-    const sessionId = this.selectedSessionId;
-    if (userId !== undefined && sessionId !== null) {
-      this.sessionService.joinSession(sessionId, userId).subscribe((response) => {
-        this.sessionService.setSessionId(response.id);
-        this.sessionService.setSession(response); // Update session in the service
-        this.loadPlaylist(sessionId);
-        this.saveSessionConnection(sessionId); // Save session connection to local storage
-        this.cdr.detectChanges();
-        console.log('Joined session:', response);
-      });
-    } else {
-      console.error('User ID or Session ID is null');
-    }
-  }
-
   private saveSessionConnection(sessionId: number) {
     localStorage.setItem('connectedSessionId', sessionId.toString());
   }
 
-  loadPlaylist(sessionId: number) {
-    this.sessionService.getPlaylist(sessionId).subscribe((playlist) => {
-      this.playlist = playlist.musics;
-      this.cdr.detectChanges();
-    });
-  }
-
-  startSession() {
-    const sessionId = this.sessionService.getSessionId();
-    if (sessionId) {
-      this.sessionService.startSession(sessionId).subscribe((response) => {
-        this.sessionService.setSession(response); // Mettre à jour la session dans le service
-        console.log('Session started:', response);
-        this.router.navigate(['/session-screen', sessionId]); // Navigate to the session screen
-
-      });
-    }
-  }
-
   onSessionSelected(session: Session) {
     this.selectedSessionId = session.id;
-    this.sessionService.setSession(session); // Mettre à jour la session dans le service
-    this.loadPlaylist(session.id); // Load the playlist for the selected session
     this.saveSessionConnection(session.id); // Save the connection to local storage
     console.log('Selected session:', session);
-  }
-
-  onSessionJoined(session: Session) {
-    this.selectedSessionId = session.id;
-    this.session = session;
-    this.saveSessionConnection(session.id);
-    console.log('Session joined:', session);
   }
 
   logout() {
@@ -185,11 +154,10 @@ export class AdminComponent implements OnInit {
       this.sessionService.getSession(parseInt(sessionId)).subscribe(
         (session) => {
           if (session && session.users.some(participant => participant.id === userId)) {
-            this.session = session;
             this.selectedSessionId = session.id;
             this.sessionService.setSession(session);
-            this.loadPlaylist(session.id);
             console.log('User is already connected to session:', session);
+            this.router.navigate(['/session-screen', this.selectedSessionId]);
           } else {
             localStorage.removeItem('connectedSessionId');
             console.log('User is not connected to this session or session does not exist.');

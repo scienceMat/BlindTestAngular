@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '@services/user.service';
@@ -8,16 +8,17 @@ import { AuthService } from '@services/auth.service';
 import { Session } from '../../core/models/session.model';
 import { User } from '../../core/models/user.model';
 import { SelectSessionComponent } from '../../shared/components/SelectSession/select-session.component';
+import { Subscription, timer } from 'rxjs';
 
 @Component({
   selector: 'app-user',
   standalone: true,
-  imports: [CommonModule, FormsModule,SelectSessionComponent],
+  imports: [CommonModule, FormsModule, SelectSessionComponent],
   providers: [UserService, SessionService, WebSocketService],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css'],
 })
-export class UserComponent implements OnInit {
+export class UserComponent implements OnInit, OnDestroy {
   userName: string = '';
   selectedSessionId: number | null = null;
   session: Session | null = null;
@@ -27,12 +28,15 @@ export class UserComponent implements OnInit {
   sessions: Session[] = [];
   timeRemaining: number | null = null;
   intervalId: any = null;
-  userId: number | undefined ;
+  userId: number | undefined;
   sessionStarted: boolean = false;
   sessionPaused: boolean = false;
   showRanking: boolean = false;
   ranking: any[] = [];
   showSubmitButton: boolean = true;
+  showCountdown: boolean = false;
+  round: number = 1;
+  private subscriptions = new Subscription();
 
   constructor(
     public userService: UserService,
@@ -48,7 +52,11 @@ export class UserComponent implements OnInit {
     }
     this.loadSessions();
     this.initializeWebSocketConnection();
-    this.sessionService.session$
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    this.webSocketService.disconnectSocket();
   }
 
   loadSessions() {
@@ -68,9 +76,13 @@ export class UserComponent implements OnInit {
 
   onSessionSelected(session: Session) {
     this.selectedSessionId = session.id;
-    this.sessionService.setSession(session); // Mettre à jour la session dans le service
-    this.saveSessionConnection(session.id); // Save the connection to local storage
+    this.sessionService.setSession(session);
+    this.saveSessionConnection(session.id);
     console.log('Selected session:', session);
+  
+    // Reconnect to WebSocket for the new session
+    this.webSocketService.disconnectSocket(); // Déconnecter de l'ancienne session
+    this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
   }
 
   private saveSessionConnection(sessionId: number) {
@@ -98,8 +110,8 @@ export class UserComponent implements OnInit {
       this.sessionService.submitAnswer(this.session.id, answer).subscribe(
         (response) => {
           console.log('Answer submitted', response);
-          this.hasBuzzed = false; // Disable further answers
-          this.showSubmitButton = false; // Hide the button after submission
+          this.hasBuzzed = false;
+          this.showSubmitButton = false;
         },
         (error) => {
           console.error('Error submitting answer', error);
@@ -134,51 +146,88 @@ export class UserComponent implements OnInit {
     }
   }
 
-  initializeWebSocketConnection() {
-    this.webSocketService.connectSocket().subscribe(() => {
-      this.webSocketService.subscribeToStart().subscribe(
-        (message) => {
-          console.log('Received data: ', message);
-          if (message === 'START_SESSION') {
-            this.sessionStarted = true;
+  initializeWebSocketConnection(): void {
+    this.subscriptions.add(
+      this.webSocketService.connectSocket().subscribe(() => {
+        if (this.session) {
+          this.subscriptions.add(
+            this.webSocketService.subscribeToSession(this.session.id).subscribe(
+              (message) => this.handleWebSocketMessage(message),
+              (error) => console.error('WebSocket error:', error)
+            )
+          );
+        }
+      })
+    );
+  }
+
+  handleWebSocketMessage(message: string): void {
+    console.log('Received WebSocket message:', message);
+    if (message.startsWith('COUNTDOWN_')) {
+      this.timeRemaining = parseInt(message.split('_')[1], 10);
+      this.showCountdown = true;
+      if (this.timeRemaining === 0) {
+        this.showCountdown = false;
+      }
+    } else if (message === 'NEXT_TRACK' || message === 'PREVIOUS_TRACK') {
+      this.sessionService.getSession(this.session!.id).subscribe((updatedSession) => {
+        this.session = updatedSession;
+        this.updateDOMForTrackChange(message);
+      });
+    } else if (message === 'START_SESSION') {
+      this.sessionStarted = true;
+      this.sessionPaused = false;
+    } else if (message === 'SESSION_FINISHED') {
+      this.sessionStarted = false;
+    } else if (message === 'STOP_SESSION') {
+      this.sessionStarted = false;
+      this.sessionPaused = true;
+    } else if (message === 'END_OF_ROUND') {
+      this.sessionPaused = true;
+      this.showRanking = true;
+      setTimeout(() => {
+        this.showRanking = false;
+        this.sessionPaused = false;
+        this.showSubmitButton = true;
+        this.round++;
+      }, 5000);
+    } else if (message === 'NEXT_ROUND') {
+      this.resetForNextRound();
+    } else {
+      try {
+        const scores = JSON.parse(message);
+        if (Array.isArray(scores)) {
+          this.ranking = scores;
+          this.showRanking = true;
+          setTimeout(() => {
+            this.showRanking = false;
             this.sessionPaused = false;
-          } else if (message === 'END_OF_ROUND') {
-            this.sessionPaused = true;
-            this.showRanking = true;
-            setTimeout(() => {
-              this.showRanking = false;
-              this.sessionPaused = false;
-              this.showSubmitButton = true; // Show the button at the start of the next round
-            }, 5000);
-          } else if (message === 'NEXT_MUSIC') {
-            this.sessionStarted = true;
-            this.sessionPaused = false;
-            this.hasBuzzed = false; // Allow buzzing for the new music
-            this.showSubmitButton = true; // Show the button at the start of the next round
-          } else if (message === 'SESSION_FINISHED') {
-            this.sessionStarted = false;
-            this.sessionPaused = false;
-            // Display the final score
-          } else {
-            try {
-              const scores = JSON.parse(message);
-              if (Array.isArray(scores)) {
-                this.ranking = scores;
-                this.showRanking = true;
-                setTimeout(() => {
-                  this.showRanking = false;
-                  this.sessionPaused = false;
-                }, 5000);
-              }
-            } catch (e) {
-              console.error('Failed to parse scores', e);
-            }
-          }
-        },
-        (error) => console.error('WebSocket error:', error),
-        () => console.log('WebSocket connection closed')
-      );
-    });
+          }, 5000);
+        }
+      } catch (e) {
+        console.error('Failed to parse scores', e);
+      }
+    }
+  }
+
+  resetForNextRound(): void {
+    this.showSubmitButton = true;
+    this.hasBuzzed = false;
+  }
+
+
+
+  updateDOMForTrackChange(direction: string): void {
+    if (this.session) {
+      const currentTrack = this.session.musicList[this.session.currentMusicIndex];
+      const message = direction === 'NEXT_TRACK' ? 'Next round starting' : 'Previous round starting';
+      this.displayTrackChangeNotification(message);
+    }
+  }
+
+  displayTrackChangeNotification(message: string): void {
+    // You can use a modal or any styled notification here.
+    alert(message);
   }
 
   logout() {

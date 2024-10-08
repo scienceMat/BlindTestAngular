@@ -1,29 +1,17 @@
-@if(connected) {
-  <div class="admin-container">
-    <h2>Create Session</h2>
-    <div class="p-fluid form-container">
-      <app-input-text [(ngModel)]="sessionName" type="text" placeholder="Session Name"></app-input-text>
-      <button (click)="createSession()" class="btn-shared btn-primary mb-3.5">Create Session</button>
-    </div>
-
-    <app-select-session 
-    [sessions]="sessions" 
-    (sessionSelected)="onSessionSelected($event)" 
-    (sessionJoined)="onSessionJoined($event)"></app-select-session>
-
-    <div *ngIf="selectedSessionId" class="button-group">
-      <button (click)="startSession()" class="btn-shared btn-primary mb-3.5">Start Session</button>
-    </div>
-
-    <app-lecteur [session]="session"></app-lecteur>
-    <app-display-playlist [playlist]="playlist"></app-display-playlist>
-
-    <router-outlet></router-outlet>
+<div class="admin-container">
+  <h2>Create Session</h2>
+  <div class="p-fluid form-container">
+    <app-input-text [(ngModel)]="sessionName" type="text" placeholder="Session Name"></app-input-text>
+    <button (click)="createSession()" class="btn-shared btn-primary mb-3.5">Create Session</button>
   </div>
-} @else {
-  <ng-container *ngTemplateOutlet="logintemplate"></ng-container>
-}
 
-<ng-template #logintemplate>
-  <app-login-button></app-login-button>
-</ng-template>
+  <app-select-session 
+    [sessions]="sessions" 
+    (sessionSelected)="onSessionSelected($event)">
+  </app-select-session>
+  
+  <button (click)="logout()">Logout</button>
+
+
+  <router-outlet></router-outlet>
+</div>

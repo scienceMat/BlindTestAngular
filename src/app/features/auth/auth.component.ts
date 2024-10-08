@@ -9,6 +9,9 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { InputTextComponent } from '../../shared/components/input/input.component';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { UserService } from '@services/user.service';
+import { LoginResponse } from '../../core/models/user.model';
+import { User,UserResponse } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-auth',
@@ -23,7 +26,7 @@ export class AuthComponent {
   isAdmin: boolean = false;
   activeIndex: number = 0;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router, private userService: UserService) {}
 
   stateOptions = [
     { label: 'User', value: false },
@@ -31,15 +34,28 @@ export class AuthComponent {
   ];
 
   login() {
-    this.authService.login(this.userName, this.password).subscribe(user => {
-      if (user) {
+    this.authService.login(this.userName, this.password).subscribe({
+      next: (response: UserResponse) => {
+        const user: User = {
+          id: response.id,
+          userName: response.username,
+          password: '', // Ne pas stocker le mot de passe
+          isAdmin: response.admin
+        };
+  
+        this.authService.setUserInLocalStorage(user);
+        this.authService.setTokenInLocalStorage(response.token);
+        this.authService.setCurrentUser(user);
+  
+        console.log("User ID:", user.id);
         if (user.isAdmin) {
           this.router.navigate(['/admin']);
         } else {
           this.router.navigate(['/users']);
         }
-      } else {
-        console.error('Login failed');
+      },
+      error: (err: any) => {
+        console.error('Error during login:', err);
       }
     });
   }

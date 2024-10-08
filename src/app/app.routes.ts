@@ -9,6 +9,7 @@ import { UserComponent } from './features/user/user.component';
 import { musicResolver } from '../../src/app/core/resolvers/musicResolver';
 import { LoginSpotifyComponent } from './login-spotify/login-spotify.component';
 import { SessionScreenComponent } from './features/session-screen/session-screen.component';
+import { CallbackComponent } from './features/callback/callback.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -17,8 +18,8 @@ export const routes: Routes = [
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard]},
   { path: 'sessions', component: SessionComponent, canActivate: [AuthGuard] },
   { path: 'users', component: UserComponent },
-  { path: 'callback', component: AdminComponent },
-  { path: 'session-screen/:id', component: SessionScreenComponent }, // Add this route
+  { path: 'callback', component: CallbackComponent },
+  { path: 'session-screen/:id', component: SessionScreenComponent, canActivate: [AdminGuard] }, // Add this route
 
 
 ];

@@ -1,58 +1,74 @@
-h1 {
-    text-align: center;
-    color: #333;
-    font-family: 'Arial', sans-serif;
-    margin-bottom: 20px;
-  }
-  
-  .join-session, .answer-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
-  }
-  
-  label {
-    font-weight: bold;
-    margin-top: 10px;
-  }
-  
-  input {
-    padding: 8px;
-    margin-top: 5px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    width: 200px;
-  }
-  
-  button {
-    padding: 10px 20px;
-    margin-top: 20px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007BFF;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
-  
-  .buzz-button {
-    background-color: #FF5733;
-  }
-  
-  .buzz-button:hover {
-    background-color: #c44521;
-  }
-  
-  h2 {
-    text-align: center;
-    color: #555;
-    font-family: 'Arial', sans-serif;
-    margin-bottom: 20px;
-  }
-  
+h3 {
+  font-size: 2em;
+  text-align: center;
+  color: #ff0000;
+  animation: countdown-animation 1s infinite;
+}
+
+@keyframes countdown-animation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.buzz-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.buzz-button:hover {
+  background-color: #45a049;
+}
+
+.answer-form label {
+  font-size: 1.2em;
+}
+
+.answer-form input {
+  font-size: 1em;
+  padding: 5px;
+  margin: 10px 0;
+}
+
+.answer-form button {
+  background-color: #008cba;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.answer-form button:hover {
+  background-color: #007bb5;
+}
+
+h2 {
+  color: #333;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  background: #eee;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 5px;
+}

@@ -3,9 +3,24 @@
     <h3>Now Playing: {{ currentTrack?.title }} by {{ currentTrack?.artist }}</h3>
   
     <div>
-      <app-lecteur [session]="session"></app-lecteur>
+      <button (click)="startSession()" class="btn-shared btn-primary mb-3.5" [disabled]="this.playlist.length<=0">Start Session</button>
+      <button (click)="stopSession()" class="btn-shared btn-primary mb-3.5">Stop Session</button>
+      <button (click)="leaveSession()" class="btn-shared btn-secondary mb-3.5">Leave Session</button>
     </div>
   
+    <div>
+      <app-lecteur [session]="session" [currentTrack]="currentTrack"></app-lecteur>
+    </div>
+  
+    <div>
+      <h3>Etat Session</h3>
+      <div>{{session.status}}</div>
+    </div>
+    <div>
+      <h3>Temps</h3>
+      <div>{{session.startTime}}</div>
+    </div>
+
     <div>
       <h3>Playlist</h3>
       <ul>
@@ -14,15 +29,15 @@
         </li>
       </ul>
     </div>
-
+  
     <div>
-        <h3>Users</h3>
-        <ul>
-          <li *ngFor="let user of session.users">
-            {{ user.userName }} - {{ user.score }}
-          </li>
-        </ul>
-      </div>
+      <h3>Users</h3>
+      <ul>
+        <li *ngFor="let user of session.users">
+          {{ user.userName }} - {{ user.score }}
+        </li>
+      </ul>
+    </div>
   
     <div>
       <h3>Scores</h3>
