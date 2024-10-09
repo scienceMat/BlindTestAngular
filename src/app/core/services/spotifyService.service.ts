@@ -1,7 +1,6 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { BehaviorSubject, Observable, from } from 'rxjs';
-import { SpotifyPlaybackState } from '../models/SpotifyPlayBackState.model';
+import {BehaviorSubject, from, Observable} from 'rxjs';
 import {TrackDTO} from '../models/trackDTO';
 
 @Injectable({
@@ -12,25 +11,25 @@ export class SpotifyService {
   private player: any;
   private playerStateSubject = new BehaviorSubject<SpotifyApi.CurrentPlaybackResponse | null>(null);
 
-  playerState$ = this.playerStateSubject.asObservable();
+  public playerState$ = this.playerStateSubject.asObservable();
 
   constructor() {
     this.spotifyApi = new SpotifyWebApi();
   }
 
-  setAccessToken(token: string) {
+  public setAccessToken(token: string) {
     if(!!token){
       this.spotifyApi.setAccessToken(token);
       localStorage.setItem('spotify_token', token);
     }
-   
+
   }
 
-  getUserPlaylists(): Observable<any> {
+  public getUserPlaylists(): Observable<any> {
     return from(this.spotifyApi.getUserPlaylists());
   }
 
-  searchTracks(query: string): Observable<any> {
+  public searchTracks(query: string): Observable<any> {
     const token = localStorage.getItem('spotify_token');
     if (token) {
       this.setAccessToken(token);
@@ -40,7 +39,7 @@ export class SpotifyService {
     }
   }
 
-  initializePlayer(token: string) {
+  public initializePlayer(token: string) {
     if (this.player) {
       console.log('Spotify Player already initialized');
       return; // Prevent re-initialization
@@ -95,7 +94,7 @@ export class SpotifyService {
     }
   }
 
-  play(options: SpotifyApi.PlayParameterObject): Observable<any> {
+  public play(options: SpotifyApi.PlayParameterObject): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
     const token = localStorage.getItem('spotify_token');
     if (deviceId && token) {
@@ -115,7 +114,7 @@ export class SpotifyService {
     }
   }
 
-  pause(): Observable<any> {
+  public pause(): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
     const token = localStorage.getItem('spotify_token');
     if (deviceId && token) {
@@ -133,7 +132,7 @@ export class SpotifyService {
     }
   }
 
-  resume(): Observable<any> {
+  public resume(): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
     const token = localStorage.getItem('spotify_token');
     if (deviceId && token) {
@@ -152,7 +151,7 @@ export class SpotifyService {
     }
   }
 
-  getCurrentTrack(): Observable<TrackDTO> {
+  public getCurrentTrack(): Observable<TrackDTO> {
     return from(
       this.spotifyApi.getMyCurrentPlayingTrack().then((response) => {
         const track = response.item as SpotifyApi.TrackObjectFull;
@@ -161,7 +160,7 @@ export class SpotifyService {
     );
   }
 
-   mapSpotifyTrackToDTO(track: SpotifyApi.TrackObjectFull): TrackDTO {
+   private mapSpotifyTrackToDTO(track: SpotifyApi.TrackObjectFull): TrackDTO {
     return {
       title: track.name,
       image: track.album.images[0]?.url || '',  // Use an empty string as a fallback
@@ -171,7 +170,7 @@ export class SpotifyService {
     };
   }
 
-  nextTrack(): Observable<any> {
+  public nextTrack(): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
     const token = localStorage.getItem('spotify_token');
     if (deviceId && token) {
@@ -189,7 +188,7 @@ export class SpotifyService {
     }
   }
 
-  previousTrack(): Observable<any> {
+  public previousTrack(): Observable<any> {
     const deviceId = localStorage.getItem('device_id');
     const token = localStorage.getItem('spotify_token');
     if (deviceId && token) {
@@ -207,7 +206,7 @@ export class SpotifyService {
     }
   }
 
-  getCurrentPlaybackState(): Observable<SpotifyApi.CurrentPlaybackResponse> {
+  public getCurrentPlaybackState(): Observable<SpotifyApi.CurrentPlaybackResponse> {
     const token = localStorage.getItem('spotify_token');
     if (token) {
       this.setAccessToken(token);

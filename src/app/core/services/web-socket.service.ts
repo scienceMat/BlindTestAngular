@@ -17,7 +17,7 @@ export class WebSocketService {
     });
   }
 
-  connectSocket(): Observable<void> {
+  public connectSocket(): Observable<void> {
     return new Observable((subscriber) => {
       this.stompClient.onConnect = () => {
         console.log('Connected to WebSocket');
@@ -34,7 +34,7 @@ export class WebSocketService {
     });
   }
 
-  subscribeToStart(): Observable<string> {
+  public subscribeToStart(): Observable<string> {
     return new Observable((subscriber) => {
       this.stompClient.subscribe('/topic/start', (message: IMessage) => {
         subscriber.next(message.body);
@@ -42,7 +42,7 @@ export class WebSocketService {
     });
   }
 
-  subscribeToSession(sessionId: number): Observable<string> {
+  public subscribeToSession(sessionId: number): Observable<string> {
     return new Observable((subscriber) => {
       const subscription = this.stompClient.subscribe(`/topic/session/${sessionId}`, (message: IMessage) => {
         subscriber.next(message.body);
@@ -52,7 +52,7 @@ export class WebSocketService {
     });
   }
 
-  disconnectSocket() {
+  public disconnectSocket() {
     if (this.stompClient) {
       this.stompClient.deactivate({ force: true });
       console.log('Disconnected from WebSocket');

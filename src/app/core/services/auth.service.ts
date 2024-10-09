@@ -9,7 +9,7 @@ import {Router} from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/users';
+  private readonly apiUrl = 'http://localhost:8080/users';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   public readonly USER_KEY = 'auth-user';
@@ -33,7 +33,7 @@ export class AuthService {
     return this.http.post<User>(`${this.apiUrl}/create`, user);
   }
 
-  login(userName: string, password: string): Observable<UserResponse> {
+  public login(userName: string, password: string): Observable<UserResponse> {
     return this.http.post<UserResponse>(`${this.apiUrl}/login`, { userName, password })
       .pipe(
         map(response => {
@@ -52,28 +52,28 @@ export class AuthService {
       );
   }
 
-  setUserInLocalStorage(user: User) {
+  public setUserInLocalStorage(user: User) {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
-  setTokenInLocalStorage(token: string) {
+  public setTokenInLocalStorage(token: string) {
     localStorage.setItem(this.TOKEN_KEY, token);
   }
 
-  setCurrentUser(user: User): void {
+  public setCurrentUser(user: User): void {
     this.currentUserSubject.next(user);
   }
 
-  getToken(): string | null {
+  public getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  getCurrentUser(): User | null {
+  public getCurrentUser(): User | null {
     const user = localStorage.getItem(this.USER_KEY);
     return user ? JSON.parse(user) : null;
   }
 
-  logout() {
+  public logout() {
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.EXPIRY_KEY);
@@ -94,18 +94,18 @@ export class AuthService {
     }
   }
 
-  isSpotifyTokenValid(): boolean {
+  public isSpotifyTokenValid(): boolean {
     const token = localStorage.getItem(this.SPOTIFY_TOKEN_KEY);
     return !!token;
   }
 
 
 
-  isAuthenticated(): boolean {
+  public isAuthenticated(): boolean {
     return this.currentUserValue !== null && this.isSpotifyTokenValid();
   }
 
-  getAuthHeaders(): HttpHeaders {
+  public getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem(this.TOKEN_KEY);
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`
