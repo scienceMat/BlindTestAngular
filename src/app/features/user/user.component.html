@@ -9,9 +9,9 @@
   </div>
 
   <!-- Session selection and join section -->
-  <app-select-session 
-    [sessions]="sessions" 
-    (sessionSelected)="onSessionSelected($event)" 
+  <app-select-session
+    [sessions]="sessions"
+    (sessionSelected)="onSessionSelected($event)"
     (sessionJoined)="onSessionJoined($event)"></app-select-session>
 
   <!-- Session details and interaction section -->
@@ -19,7 +19,7 @@
     <h2>Session: {{ session?.name }}</h2>
 
     <div *ngIf="showCountdown">
-      <h3>Next round starts in {{ timeRemaining }}...</h3>
+      <h3>Next round starts in {{ countdown }} seconds...</h3>
     </div>
 
     <div *ngIf="!showCountdown && sessionStarted">

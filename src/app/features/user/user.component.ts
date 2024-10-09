@@ -32,6 +32,7 @@ export class UserComponent implements OnInit, OnDestroy {
   sessionStarted: boolean = false;
   sessionPaused: boolean = false;
   showRanking: boolean = false;
+  countdown: number = 0;
   ranking: any[] = [];
   showSubmitButton: boolean = true;
   showCountdown: boolean = false;
@@ -79,7 +80,7 @@ export class UserComponent implements OnInit, OnDestroy {
     this.sessionService.setSession(session);
     this.saveSessionConnection(session.id);
     console.log('Selected session:', session);
-  
+
     // Reconnect to WebSocket for the new session
     this.webSocketService.disconnectSocket(); // Déconnecter de l'ancienne session
     this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
@@ -126,25 +127,10 @@ export class UserComponent implements OnInit, OnDestroy {
         this.session = session;
         this.sessionService.setSession(session);
         this.sessionStarted = this.session.status === 'in-progress';
-        this.startTimer();
       }
     });
   }
 
-  startTimer() {
-    if (this.session && this.session.endTime) {
-      const endTime = new Date(this.session.endTime).getTime();
-      this.intervalId = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = endTime - now;
-        this.timeRemaining = Math.floor(distance / 1000);
-        if (distance < 0) {
-          clearInterval(this.intervalId);
-          this.timeRemaining = 0;
-        }
-      }, 1000);
-    }
-  }
 
   initializeWebSocketConnection(): void {
     this.subscriptions.add(
@@ -161,74 +147,63 @@ export class UserComponent implements OnInit, OnDestroy {
     );
   }
 
-  handleWebSocketMessage(message: string): void {
-    console.log('Received WebSocket message:', message);
-    if (message.startsWith('COUNTDOWN_')) {
-      this.timeRemaining = parseInt(message.split('_')[1], 10);
-      this.showCountdown = true;
-      if (this.timeRemaining === 0) {
+  startCountdown(time: number) {
+    this.countdown = time;
+    let interval = setInterval(() => {
+      this.countdown--;
+      if (this.countdown === 0) {
+        clearInterval(interval);
+        this.sessionStarted = true;
         this.showCountdown = false;
       }
-    } else if (message === 'NEXT_TRACK' || message === 'PREVIOUS_TRACK') {
-      this.sessionService.getSession(this.session!.id).subscribe((updatedSession) => {
-        this.session = updatedSession;
-        this.updateDOMForTrackChange(message);
-      });
-    } else if (message === 'START_SESSION') {
-      this.sessionStarted = true;
-      this.sessionPaused = false;
-    } else if (message === 'SESSION_FINISHED') {
-      this.sessionStarted = false;
-    } else if (message === 'STOP_SESSION') {
-      this.sessionStarted = false;
-      this.sessionPaused = true;
-    } else if (message === 'END_OF_ROUND') {
-      this.sessionPaused = true;
-      this.showRanking = true;
-      setTimeout(() => {
-        this.showRanking = false;
-        this.sessionPaused = false;
-        this.showSubmitButton = true;
-        this.round++;
-      }, 5000);
-    } else if (message === 'NEXT_ROUND') {
-      this.resetForNextRound();
+    }, 1000);
+  }
+
+  handleWebSocketMessage(message: string): void {
+    console.log('Received WebSocket message:', message);
+    switch (message) {
+      case 'START_SESSION':
+        this.showCountdown = true;
+        this.startCountdown(10); // Par exemple, 10 secondes avant démarrage
+        break;
+      case 'END_OF_ROUND':
+        this.showRanking = true;
+        setTimeout(() => {
+          this.showRanking = false;
+        }, 5000);
+        break;
+      case 'NEXT_MUSIC':
+        this.startCountdown(10); // Par exemple, 10 secondes avant démarrage
+        break;
+      case 'SESSION_FINISHED':
+        this.sessionStarted = false;
+        // Finaliser l'affichage des scores finaux
+        break;
+      case 'STOP_SESSION':
+        this.sessionStarted = false;
+        break;
+      case 'SCORE_UPDATE':
+        this.handleScoreUpdates(message);
+        break;
+      default:
+        this.handleScoreUpdates(message);
+    }
+  }
+
+
+  //TODO Récuprer les infos via une api REST entre chaque round
+  handleScoreUpdates(message: string) {
+    // Supposons que le message ait le format 'SCORE_UPDATE:userId:score'
+    const [eventType, userId, score] = message.split(':');
+    // Mettre à jour le classement ou autres éléments dynamiques
+    const userIndex = this.ranking.findIndex(user => user.name === userId);
+    if (userIndex !== -1) {
+      this.ranking[userIndex].score = parseInt(score, 10);
     } else {
-      try {
-        const scores = JSON.parse(message);
-        if (Array.isArray(scores)) {
-          this.ranking = scores;
-          this.showRanking = true;
-          setTimeout(() => {
-            this.showRanking = false;
-            this.sessionPaused = false;
-          }, 5000);
-        }
-      } catch (e) {
-        console.error('Failed to parse scores', e);
-      }
+      this.ranking.push({ name: userId, score: parseInt(score, 10) });
     }
   }
 
-  resetForNextRound(): void {
-    this.showSubmitButton = true;
-    this.hasBuzzed = false;
-  }
-
-
-
-  updateDOMForTrackChange(direction: string): void {
-    if (this.session) {
-      const currentTrack = this.session.musicList[this.session.currentMusicIndex];
-      const message = direction === 'NEXT_TRACK' ? 'Next round starting' : 'Previous round starting';
-      this.displayTrackChangeNotification(message);
-    }
-  }
-
-  displayTrackChangeNotification(message: string): void {
-    // You can use a modal or any styled notification here.
-    alert(message);
-  }
 
   logout() {
     localStorage.removeItem('userId');

@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common'; // Import CommonModule for standalone component
-import { SpotifyService } from '../../core/services/spotifyService.service'; // Import your Spotify service
+import {Component, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {CommonModule} from '@angular/common'; // Import CommonModule for standalone component
+import {SpotifyService} from '../../core/services/spotifyService.service'; // Import your Spotify service
 
 @Component({
   selector: 'app-callback',
@@ -16,7 +16,7 @@ export class CallbackComponent implements OnInit {
     const token = localStorage.getItem('spotify_token');
     const tokenExpiration = localStorage.getItem('spotify_token_expiration');
     const now = new Date().getTime();
-  
+
     if ((token && token !== 'undefined') && tokenExpiration && now < parseInt(tokenExpiration)) {
       // Token is valid
       this.spotifyService.setAccessToken(token);
