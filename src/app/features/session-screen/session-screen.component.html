@@ -1,5 +1,5 @@
 <div *ngIf="session">
-    <h2>{{ session?.name }}</h2>
+    <h2>{{ session.name }}</h2>
     <h3>Now Playing: {{ currentTrack?.title }} by {{ currentTrack?.artist }}</h3>
   
     <div>
@@ -9,8 +9,10 @@
     </div>
   
     <div>
-      <app-lecteur [session]="session" [currentTrack]="currentTrack"></app-lecteur>
-    </div>
+      <app-lecteur
+      [session]="session"
+      [currentTrack]="currentTrack"
+    ></app-lecteur>    </div>
   
     <div>
       <h3>Etat Session</h3>

@@ -21,6 +21,10 @@ export class SessionService {
   public getAllSessions(): Observable<any> {
     return this.http.get(this.apiUrl);
   }
+  
+  public getSessionScores(sessionId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${sessionId}/scores`);
+  }
 
   public createSession(session: { name: string, adminId: number }): Observable<any> {
     return this.http.post(this.apiUrl, session);
@@ -86,6 +90,10 @@ export class SessionService {
   // Add this method to go to the previous track
   public previousTrack(sessionId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionId}/previousTrack`, {});
+  }
+
+  getCurrentMusicIndex(sessionId: number): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/${sessionId}/current-music-index`);
   }
 
   public getSessionId(): number | null {

@@ -22,6 +22,7 @@
     "@angular/router": "^18.1.0",
     "@angular/ssr": "^18.1.0",
     "@stomp/stompjs": "^7.0.0",
+    "blind-test-angular": "file:",
     "express": "^4.18.2",
     "ngx-socket-io": "^4.7.0",
     "primeicons": "^7.0.0",

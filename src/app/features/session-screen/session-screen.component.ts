@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy,ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../core/services/session.service';
 import { Session } from '../../core/models/session.model';
@@ -21,21 +21,29 @@ import { AuthService } from '@services/auth.service';
   imports: [LecteurComponent, FormsModule, CommonModule]
 })
 export class SessionScreenComponent implements OnInit, OnDestroy {
+  @ViewChild(LecteurComponent) lecteurComponent!: LecteurComponent;
+
+
   session: Session | null = null;
   playlist: TrackDTO[] = [];
   currentTrack: TrackDTO | null = null;
   scores: { user: User, score: number }[] = [];
+  currentUser: User | null = null;
+
   private playlistSubscription: Subscription = new Subscription();
   private sessionSubscription: Subscription = new Subscription();
-  private userSubscription!: Subscription;  
+  private userSubscription: Subscription = new Subscription();
+  private subscription: Subscription = new Subscription();
 
   connected: boolean = false;
   sessionStarted: boolean = false;
   sessionPaused: boolean = false;
   showRanking: boolean = false;
   hasBuzzed: boolean = false;
+  countdown: number = 0;
   ranking: any[] = [];
   showSubmitButton: boolean = true;
+  public isConnected = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -49,11 +57,16 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const sessionId = this.route.snapshot.paramMap.get('id');
-    const userId = this.authService.getCurrentUser()?.id;
 
-    if (sessionId && userId) {
+    this.userSubscription = this.authService.currentUser.subscribe(user => {
+      this.currentUser = user;
+      console.log('Current user:', this.currentUser);
+    });
+
+    if (sessionId && this.currentUser?.id) {
       this.loadSession(parseInt(sessionId));
       // this.checkSessionConnection(userId);
+      this.webSocketService.connectSocket();
       this.initializeWebSocketConnection(parseInt(sessionId)); // Pass sessionId for specific subscription
     } else {
       console.log("redirect to  admin")
@@ -79,29 +92,56 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     });
   }
 
-  initializeWebSocketConnection(sessionId: number) {
-    this.webSocketService.connectSocket().subscribe(() => {
-      this.webSocketService.subscribeToSession(sessionId).subscribe(
-        (message) => {
-          console.log('Received data: ', message);
-          this.handleWebSocketMessage(message);
-        },
-        (error) => console.error('WebSocket error:', error),
-        () => console.log('WebSocket connection closed')
+  private initializeWebSocketConnection(sessionId: number): void {
+    if (sessionId) {
+      this.subscription.unsubscribe();  // Désabonnement pour éviter les multiples abonnements
+      this.subscription = new Subscription();
+      
+      this.subscription.add(
+        this.webSocketService.getConnectionState().subscribe(isConnected => {
+          this.isConnected = isConnected;
+          if (isConnected) {
+            this.subscription.add(
+              this.webSocketService.subscribeToSession(sessionId).subscribe(message => {
+                console.log('Received message:', message);
+                this.handleWebSocketMessage(message);
+              })
+            );
+          }
+        })
       );
-    });
+    } else {
+      console.error('No session selected, cannot initialize WebSocket connection.');
+    }
   }
+
+  startCountdown(time: number) {
+    this.countdown = time;
+    let interval = setInterval(() => {
+      this.countdown--;
+      if (this.countdown === 0) {
+        clearInterval(interval);
+        this.sessionStarted = true;
+        this.sessionPaused = false;
+        this.lecteurComponent.trackResumed.emit();  
+      }
+    }, 1000);
+  }
+
 
   handleWebSocketMessage(message: string): void {
     console.log('Received WebSocket message:', message);
     switch (message) {
       case 'START_SESSION':
-        this.sessionStarted = true;
-        this.sessionPaused = false;
+        this.startCountdown(10);
+        break;
+      case 'PAUSE_MUSIC':
+        this.lecteurComponent.trackPaused.emit();  
         break;
       case 'END_OF_ROUND':
         this.sessionPaused = true;
         this.showRanking = true;
+        this.lecteurComponent.trackPaused.emit();  
         setTimeout(() => {
           this.showRanking = false;
           this.sessionPaused = false;
@@ -113,15 +153,25 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
         this.sessionPaused = false;
         this.hasBuzzed = false;
         this.showSubmitButton = true;
+        this.sessionService.getSession(this.session!.id).subscribe((updatedSession) => {
+          this.session = updatedSession;
+          this.updateDOMForTrackChange(message);
+        });
+        this.lecteurComponent.nextTrackEvent.emit();  
+
         break;
       case 'SESSION_FINISHED':
         this.sessionStarted = false;
         this.sessionPaused = false;
+        this.lecteurComponent.trackPaused.emit();  
+
         // Display the final score
         break;
       case 'STOP_SESSION':
         this.sessionStarted = false;
         this.sessionPaused = true;
+        this.lecteurComponent.trackPaused.emit();  
+
         // pause
         break;
       case 'NEXT_TRACK':
@@ -130,6 +180,8 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
           this.session = updatedSession;
           this.updateDOMForTrackChange(message);
         });
+        this.lecteurComponent.previousTrackEvent.emit(); 
+
         break;
       default:
         this.handleScoreUpdates(message);
@@ -190,13 +242,26 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     if (sessionId) {
       this.sessionService.startSession(sessionId).subscribe((response) => {
         this.sessionService.setSession(response);
-        if (this.playlist.length > 0) {
-          this.currentTrack = this.playlist[0];
-        }
+  
+        // Récupérer la session mise à jour depuis le backend, incluant l'index actuel de la musique
+        this.sessionService.getSession(sessionId).subscribe((session) => {
+          this.session = session;
+          const currentMusicIndex = session.currentMusicIndex;
+  
+          // Assurez-vous que l'index de la musique est valide et qu'il existe une playlist
+          if (currentMusicIndex !== undefined && currentMusicIndex >= 0 && currentMusicIndex < this.playlist.length) {
+            // Synchroniser la musique avec l'index du backend
+            this.currentTrack = this.playlist[currentMusicIndex];
+          } else {
+            console.error('Invalid music index or empty playlist:', currentMusicIndex);
+          }
+        });
+        
         console.log('Session started:', response);
       });
     }
   }
+  
 
   stopSession() {
     const sessionId = this.session?.id;
@@ -211,7 +276,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
   }
 
   leaveSession() {
-    const userId = this.userService.getUserId();
+    const userId = this.currentUser?.id
     const sessionId = this.session?.id;
     if (sessionId) {
       this.sessionService.leaveSession(sessionId, userId as number).subscribe(() => {

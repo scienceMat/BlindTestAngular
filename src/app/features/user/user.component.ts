@@ -9,6 +9,8 @@ import { Session } from '../../core/models/session.model';
 import { User } from '../../core/models/user.model';
 import { SelectSessionComponent } from '../../shared/components/SelectSession/select-session.component';
 import { Subscription, timer } from 'rxjs';
+import { Router } from '@angular/router';
+import { SpotifyService } from '@services/spotifyService.service';
 
 @Component({
   selector: 'app-user',
@@ -37,13 +39,17 @@ export class UserComponent implements OnInit, OnDestroy {
   showSubmitButton: boolean = true;
   showCountdown: boolean = false;
   round: number = 1;
-  private subscriptions = new Subscription();
+  private subscription: Subscription = new Subscription();
+  public isConnected = false;
+  public messages: string[] = [];
 
   constructor(
     public userService: UserService,
     public sessionService: SessionService,
     private webSocketService: WebSocketService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
+    private spotifyService: SpotifyService
   ) {}
 
   ngOnInit() {
@@ -52,12 +58,14 @@ export class UserComponent implements OnInit, OnDestroy {
       this.checkSession();
     }
     this.loadSessions();
-    this.initializeWebSocketConnection();
+    this.webSocketService.connectSocket();
+    this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
+
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-    this.webSocketService.disconnectSocket();
+    this.cleanupSubscriptions();
+    this.webSocketService.disconnectSocket(); // Déconnecter proprement du WebSocket
   }
 
   loadSessions() {
@@ -81,20 +89,45 @@ export class UserComponent implements OnInit, OnDestroy {
     this.saveSessionConnection(session.id);
     console.log('Selected session:', session);
 
-    // Reconnect to WebSocket for the new session
-    this.webSocketService.disconnectSocket(); // Déconnecter de l'ancienne session
-    this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
+    
   }
 
   private saveSessionConnection(sessionId: number) {
     localStorage.setItem('connectedSessionId', sessionId.toString());
   }
 
+  leaveSession() {
+    const sessionId = this.session?.id;
+    if (sessionId) {
+      this.sessionService.leaveSession(sessionId, this.userId as number).subscribe(() => {
+        console.log('Left session');
+        this.router.navigate(['/']); // Redirect to home or sessions list
+      });
+    }
+  }
+
   onSessionJoined(session: Session) {
-    this.selectedSessionId = session.id;
-    this.session = session;
-    this.saveSessionConnection(session.id);
-    console.log('Session joined:', session);
+    if (this.session?.id !== session.id) {
+      this.selectedSessionId = session.id;
+      this.session = session;
+      this.saveSessionConnection(session.id);
+
+      // Nettoyage des abonnements avant de changer de session
+      this.cleanupSubscriptions();
+      this.webSocketService.disconnectSocket(); // Déconnecter de l'ancienne session
+
+      this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
+      console.log('Session joined:', session);
+    } else {
+      console.log('Already connected to this session');
+    }
+  }
+
+  private cleanupSubscriptions(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+      this.subscription = new Subscription(); // Reset for the new session
+    }
   }
 
   buzz() {
@@ -108,10 +141,16 @@ export class UserComponent implements OnInit, OnDestroy {
         title: title,
         artist: artist,
       };
+  
       this.sessionService.submitAnswer(this.session.id, answer).subscribe(
-        (response) => {
+        (response: any) => {
           console.log('Answer submitted', response);
-          this.hasBuzzed = false;
+  
+          // Récupérer les scores dans la session renvoyée
+          if (response && response.scores) {
+            this.updateScores(response.scores);
+          }
+  
           this.showSubmitButton = false;
         },
         (error) => {
@@ -119,6 +158,16 @@ export class UserComponent implements OnInit, OnDestroy {
         }
       );
     }
+  }
+  
+  updateScores(scores: { [userId: number]: number }) {
+    // Transformer les scores en un tableau d'objets pour le ranking
+    this.ranking = Object.entries(scores).map(([userId, score]) => ({
+      userId: Number(userId),
+      score: score
+    }));
+  
+    console.log('Ranking updated:', this.ranking);
   }
 
   checkSession() {
@@ -129,23 +178,34 @@ export class UserComponent implements OnInit, OnDestroy {
         this.sessionStarted = this.session.status === 'in-progress';
       }
     });
+    this.initializeWebSocketConnection();
+
   }
 
 
-  initializeWebSocketConnection(): void {
-    this.subscriptions.add(
-      this.webSocketService.connectSocket().subscribe(() => {
-        if (this.session) {
-          this.subscriptions.add(
-            this.webSocketService.subscribeToSession(this.session.id).subscribe(
-              (message) => this.handleWebSocketMessage(message),
-              (error) => console.error('WebSocket error:', error)
-            )
+  private initializeWebSocketConnection(): void {
+    
+  // Vérifier que la session est sélectionnée avant d'essayer de se connecter
+  if (this.sessionService.getSessionId()) {
+    this.cleanupSubscriptions();
+    this.subscription.add(
+      this.webSocketService.getConnectionState().subscribe(isConnected => {
+        this.isConnected = isConnected;
+        if (isConnected) {
+          // Utiliser l'ID de la session sélectionnée pour la souscription
+          this.subscription.add(
+            this.webSocketService.subscribeToSession(this.selectedSessionId!).subscribe(message => {
+              console.log('Received message:', message);
+              this.handleWebSocketMessage(message);
+            })
           );
         }
       })
     );
+  } else {
+    console.error('No session selected, cannot initialize WebSocket connection.');
   }
+}
 
   startCountdown(time: number) {
     this.countdown = time;
@@ -154,40 +214,74 @@ export class UserComponent implements OnInit, OnDestroy {
       if (this.countdown === 0) {
         clearInterval(interval);
         this.sessionStarted = true;
+        this.showSubmitButton = true;
+        this.sessionPaused = false;
         this.showCountdown = false;
+        this.hasBuzzed = false;
       }
     }, 1000);
   }
 
   handleWebSocketMessage(message: string): void {
     console.log('Received WebSocket message:', message);
+    
     switch (message) {
+      case 'PAUSE_MUSIC':
+      this.pauseMusic();  // API Spotify pour mettre en pause la musique
+      break;
+
       case 'START_SESSION':
         this.showCountdown = true;
-        this.startCountdown(10); // Par exemple, 10 secondes avant démarrage
+        this.startCountdown(10);
         break;
+      
       case 'END_OF_ROUND':
         this.showRanking = true;
+        this.sessionPaused = true;
         setTimeout(() => {
           this.showRanking = false;
-        }, 5000);
+          this.sessionPaused = false;
+          this.nextRound();  // Passer au round suivant après un délai
+        }, 15000); // Afficher les scores pendant 5 secondes avant de les masquer
         break;
+      
       case 'NEXT_MUSIC':
-        this.startCountdown(10); // Par exemple, 10 secondes avant démarrage
+        this.round = this.round +1
+        this.startCountdown(10);
+        this.nextTrack();  // Passer à la musique suivante
+
         break;
+      
       case 'SESSION_FINISHED':
         this.sessionStarted = false;
-        // Finaliser l'affichage des scores finaux
         break;
+      
       case 'STOP_SESSION':
         this.sessionStarted = false;
         break;
-      case 'SCORE_UPDATE':
-        this.handleScoreUpdates(message);
-        break;
+  
       default:
         this.handleScoreUpdates(message);
     }
+  }
+
+  pauseMusic(): void {
+    this.spotifyService.pause().subscribe(() => {
+      console.log('Music paused');
+    });
+  }
+  
+  nextTrack(): void {
+    this.spotifyService.nextTrack().subscribe(() => {
+      console.log('Next track is playing');
+    });
+  }
+
+  nextRound(): void {
+    this.sessionService.nextQuestion(this.selectedSessionId!).subscribe((response) => {
+      console.log('Next round started');
+      this.nextTrack();  // Jouer la musique suivante après la pause
+    });
   }
 
 

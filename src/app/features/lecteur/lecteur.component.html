@@ -37,7 +37,7 @@
       <input type="range" min="0" [max]="trackDuration" [value]="timeProgress" readonly>
     </div>
     <div>
-      <button (click)="playPlaylistTrack(this.playlist[0], 0)" *ngIf="playlist.length > 0">Play</button>
+      <button (click)="playPlaylistTrack(this.playlist[0])" *ngIf="playlist.length > 0">Play</button>
       <button (click)="pause()" *ngIf="isPlaying">Pause</button>
       <button (click)="resume()" *ngIf="!isPlaying">Resume</button>
       <button (click)="nextTrack()">Next</button>

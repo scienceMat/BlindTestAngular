@@ -13,10 +13,12 @@
     [sessions]="sessions"
     (sessionSelected)="onSessionSelected($event)"
     (sessionJoined)="onSessionJoined($event)"></app-select-session>
+    <button (click)="leaveSession()" class="btn-shared btn-secondary mb-3.5">Leave Session</button>
+
 
   <!-- Session details and interaction section -->
   <ng-container *ngIf="session">
-    <h2>Session: {{ session?.name }}</h2>
+    <h2>Session: {{ session.name }}</h2>
 
     <div *ngIf="showCountdown">
       <h3>Next round starts in {{ countdown }} seconds...</h3>
@@ -24,8 +26,12 @@
 
     <div *ngIf="!showCountdown && sessionStarted">
       <p>Round {{ round }}</p>
+      
+      <!-- Afficher le bouton "Buzz" seulement si la session n'est pas en pause et que l'utilisateur n'a pas encore buzzé -->
       <button class="buzz-button" (click)="buzz()" *ngIf="!sessionPaused && !hasBuzzed">Buzz</button>
-      <div class="answer-form" *ngIf="hasBuzzed">
+    
+      <!-- Afficher le formulaire de réponse seulement si l'utilisateur a buzzé et que la session n'est pas en pause -->
+      <div class="answer-form" *ngIf="hasBuzzed && !sessionPaused">
         <label>Title:</label>
         <input [(ngModel)]="title" placeholder="Enter title">
         <label>Artist:</label>

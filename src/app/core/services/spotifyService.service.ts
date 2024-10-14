@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 import {BehaviorSubject, from, Observable} from 'rxjs';
 import {TrackDTO} from '../models/trackDTO';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,7 @@ export class SpotifyService {
 
   public playerState$ = this.playerStateSubject.asObservable();
 
-  constructor() {
+  constructor(private authService: AuthService) {
     this.spotifyApi = new SpotifyWebApi();
   }
 
@@ -40,9 +41,16 @@ export class SpotifyService {
   }
 
   public initializePlayer(token: string) {
+    const currentUser = this.authService.currentUserValue;
+
     if (this.player) {
       console.log('Spotify Player already initialized');
       return; // Prevent re-initialization
+    }
+
+    if (!currentUser || !currentUser.isAdmin) {
+      console.log('User is not an admin, Spotify Player initialization skipped.');
+      return;
     }
 
     this.setAccessToken(token);

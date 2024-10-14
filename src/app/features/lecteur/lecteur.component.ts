@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SpotifyService } from '@services/spotifyService.service';
@@ -32,6 +32,12 @@ import { PlaylistService } from '../../core/services/utils/playlistService';
 export class LecteurComponent implements OnInit, OnDestroy {
   @Input() session: Session | null = null;
   @Input() currentTrack: TrackDTO | null = null; 
+
+  @Output() trackPaused: EventEmitter<void> = new EventEmitter();
+  @Output() trackResumed: EventEmitter<void> = new EventEmitter();
+  @Output() nextTrackEvent: EventEmitter<void> = new EventEmitter();
+  @Output() previousTrackEvent: EventEmitter<void> = new EventEmitter();
+
   trackId = '3n3Ppam7vgaVa1iaRUc9Lp'; // Example track ID
   isPlaying: boolean = false;
   searchResults: any[] = [];
@@ -111,6 +117,8 @@ export class LecteurComponent implements OnInit, OnDestroy {
           }
         })
       );
+
+      
   
       // Get initial player state
       this.spotifyService.getCurrentPlaybackState().subscribe(state => {
@@ -122,6 +130,23 @@ export class LecteurComponent implements OnInit, OnDestroy {
       // Redirect to Spotify login if no token is found
       this.redirectToSpotifyLogin();
     }
+
+    this.nextTrackEvent.subscribe(() => {
+      this.nextTrack(); 
+    });
+
+    this.previousTrackEvent.subscribe(() => {
+      this.previousTrack(); 
+    });
+
+    this.trackPaused.subscribe(() => {
+      this.pause(); 
+    });
+
+    this.trackResumed.subscribe(() => {
+      this.resume(); 
+    });
+
   }
 
   ngOnDestroy(): void {
@@ -194,58 +219,49 @@ export class LecteurComponent implements OnInit, OnDestroy {
     }
   }
 
-  playTrack(uri: string, trackIndex: number) {
-    const sessionId = this.session?.id;
-    if (!sessionId) {
+  playTrack(uri: string) {
+    if (!this.session?.id) {
       console.error('Session ID is null');
       return;
     }
+  
     console.log('Playing track:', uri);
   
     this.spotifyService.play({ uris: [uri] })
       .pipe(
-        // Wait for a short delay to ensure the track has time to start
+        // Attendre un court délai pour s'assurer que la musique commence
         switchMap(() => {
           this.isPlaying = true;
-          return timer(500); // Wait for 500 milliseconds before checking the track
+          return timer(500); // Attendre 500 millisecondes pour assurer le démarrage de la musique
         }),
-        // After delay, fetch the current track info
-        switchMap(() => this.spotifyService.getCurrentTrack()),
-        // Handle any errors that occur during the process
+        // Aucun besoin de récupérer la piste en cours depuis Spotify
         catchError(error => {
-          console.error('Error playing track or getting current track:', error);
-          return of(null); // Return a null observable in case of error
+          console.error('Error playing track:', error);
+          return of(null); // Retourner une observable nulle en cas d'erreur
         })
       )
-      .subscribe(track => {
-        if (!track) {
-          console.error('Track is null or could not be retrieved');
+      .subscribe(() => {
+        // Vous avez déjà la piste dans `this.currentTrack`, donc vous pouvez l'utiliser directement
+        if (!this.currentTrack) {
+          console.error('Current track is null');
           return;
         }
   
-        this.currentTrack = track;
-        this.trackDuration = track.duration_ms || 0;
-        this.startProgressBar();
+        // Définir la durée de la piste à partir de `this.currentTrack`
+        this.trackDuration = this.currentTrack.duration_ms || 0;
   
-        // Update the current music index on the server
-        this.sessionService.updateCurrentMusicIndex(sessionId, trackIndex).subscribe(
-          () => {
-            console.log('Current music index updated');
-          },
-          error => {
-            console.error('Error updating current music index:', error);
-          }
-        );
+        // Démarrer la barre de progression
+        this.startProgressBar();
       });
   }
 
-  playPlaylistTrack(track: TrackDTO, trackIndex: number) {
+  playPlaylistTrack(track: TrackDTO) {
     const sessionId = this.session?.id;
     if (this.session?.status === 'in-progress') {
       this.currentTrack = track;
       this.trackDuration = track.duration_ms || 0;
       this.timeProgress = 0;
-      this.playTrack(track.filePath, trackIndex);
+      this.playTrack(track.filePath);
     }
   }
 
@@ -261,12 +277,39 @@ export class LecteurComponent implements OnInit, OnDestroy {
   }
 
   resume() {
-    this.spotifyService.resume().subscribe(() => {
-      this.isPlaying = true;
-      this.startProgressBar();
-    }, error => {
-      console.error('Error resuming track:', error);
-    });
+    if (this.session) {
+      this.sessionService.getCurrentMusicIndex(this.session.id).subscribe(currentMusicIndex => {
+        if (currentMusicIndex < 0 || currentMusicIndex >= this.playlist.length) {
+          console.error('Invalid music index from backend.');
+          return;
+        }
+  
+        const nextTrack = this.playlist[currentMusicIndex];
+        if (nextTrack) {
+          // Vérification si la musique actuelle est déjà la bonne
+          this.spotifyService.getCurrentPlaybackState().subscribe(state => {
+            if (state && state.item && state.item.uri === nextTrack.filePath) {
+              // Si la musique actuelle est la bonne, on reprend
+              this.spotifyService.resume().subscribe(() => {
+                this.isPlaying = true;
+                this.startProgressBar();
+                console.log('Resumed playback of current track.');
+              }, error => {
+                console.error('Error resuming track:', error);
+              });
+            } else {
+              // Si la musique actuelle n'est pas la bonne, on joue la bonne musique
+              console.log('Playing correct track:', nextTrack.filePath);
+              this.playTrack(nextTrack.filePath);
+            }
+          }, error => {
+            console.error('Error fetching current playback state:', error);
+          });
+        }
+      }, error => {
+        console.error('Error retrieving current music index:', error);
+      });
+    }
   }
 
   nextTrack() {
@@ -275,44 +318,46 @@ export class LecteurComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentIndex = this.playlist.findIndex(track => track.filePath === this.currentTrack?.filePath);
-    if (currentIndex === -1) {
-      console.error('Current track is not found in the playlist.');
-      return;
-    }
+    // Récupérer l'index actuel de la musique depuis le backend
+    if (this.session) {
+      this.sessionService.getCurrentMusicIndex(this.session.id).subscribe(currentMusicIndex => {
+        if (currentMusicIndex < 0 || currentMusicIndex >= this.playlist.length) {
+          console.error('Invalid music index from backend.');
+          return;
+        }
 
-    const nextIndex = (currentIndex + 1) % this.playlist.length;
-    const nextTrack = this.playlist[nextIndex];
-
-    if (nextTrack && this.session) {
-      this.sessionService.nextTrack(this.session.id).subscribe(() => {
-        this.playTrack(nextTrack.filePath, nextIndex);
+        const nextTrack = this.playlist[currentMusicIndex];
+        if (nextTrack) {
+          this.playTrack(nextTrack.filePath);
+        }
+      }, error => {
+        console.error('Error retrieving current music index:', error);
       });
     }
+}
+
+previousTrack() {
+  if (!this.session || !this.session.id || !this.playlist || this.playlist.length === 0) {
+    console.error('Session or playlist is not defined.');
+    return;
   }
 
-  previousTrack() {
-    if (!this.playlist || this.playlist.length === 0) {
-      console.error('Playlist is empty or not defined.');
-      return;
-    }
+  if (this.session) {
+    this.sessionService.getCurrentMusicIndex(this.session.id).subscribe(currentMusicIndex => {
+      if (currentMusicIndex < 0 || currentMusicIndex >= this.playlist.length) {
+        console.error('Invalid music index from backend.');
+        return;
+      }
 
-    const currentIndex = this.playlist.findIndex(track => track.filePath === this.currentTrack?.filePath);
-    if (currentIndex === -1) {
-      console.error('Current track is not found in the playlist.');
-      return;
-    }
-
-    const prevIndex = (currentIndex - 1 + this.playlist.length) % this.playlist.length;
-    const prevTrack = this.playlist[prevIndex];
-
-    if (prevTrack && this.session) {
-      this.sessionService.previousTrack(this.session.id).subscribe(() => {
-        this.playTrack(prevTrack.filePath, prevIndex);
-      });
-    }
+      const previousTrack = this.playlist[currentMusicIndex];
+      if (previousTrack) {
+        this.playTrack(previousTrack.filePath);
+      }
+    }, error => {
+      console.error('Error retrieving current music index:', error);
+    });
   }
-
+}
   startSession() {
     const sessionId = this.sessionService.getSessionId();
     if (sessionId) {
@@ -325,14 +370,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
     }
   }
 
-  nextQuestion() {
-    if (this.session && this.session.id) {
-      this.sessionService.nextQuestion(this.session.id).subscribe(response => {
-        this.session = response;
-        this.playNextTrack();
-      });
-    }
-  }
+
 
   submitAnswer(title: string, artist: string) {
     if (this.session && this.session.id !== null) {
@@ -437,16 +475,4 @@ export class LecteurComponent implements OnInit, OnDestroy {
     }, {} as { [key: string]: string });
   }
 
-  private playNextTrack() {
-    if (this.playlist && this.playlist.length > 0) {
-      const currentIndex = this.session?.currentMusicIndex || 0;
-      const nextIndex = (currentIndex + 1) % this.playlist.length;
-      const nextTrack = this.playlist[nextIndex];
-
-      if (nextTrack && this.session) {
-        this.playTrack(nextTrack.filePath, nextIndex);
-        this.sessionService.updateCurrentMusicIndex(this.session.id, nextIndex).subscribe();
-      }
-    }
-  }
 }

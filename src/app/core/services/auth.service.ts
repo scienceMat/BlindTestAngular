@@ -52,6 +52,22 @@ export class AuthService {
       );
   }
 
+  public redirectToSpotifyLogin() {
+    const clientId = '909dc01e3aee4ec4b72b8738a1ea7f1d';
+    const redirectUri = 'http://localhost:4200/callback';
+    const scopes = [
+      'user-read-private',
+      'user-read-email',
+      'playlist-read-private',
+      'user-modify-playback-state',
+      'user-read-playback-state',
+      'user-read-currently-playing',
+      'streaming'
+    ];
+    const authUrl = `https://accounts.spotify.com/authorize?response_type=token&client_id=${clientId}&scope=${encodeURIComponent(scopes.join(' '))}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = authUrl;
+  }
+
   public setUserInLocalStorage(user: User) {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
