@@ -1,62 +1,76 @@
-<div *ngIf="session">
-    <h2>{{ session.name }}</h2>
-    <h3>Now Playing: {{ currentTrack?.title }} by {{ currentTrack?.artist }}</h3>
-  
-    <div>
-      <button (click)="startSession()" class="btn-shared btn-primary mb-3.5" [disabled]="this.playlist.length<=0">Start Session</button>
-      <button (click)="stopSession()" class="btn-shared btn-primary mb-3.5">Stop Session</button>
-      <button (click)="leaveSession()" class="btn-shared btn-secondary mb-3.5">Leave Session</button>
-    </div>
-  
-    <div>
-      <app-lecteur
-      [session]="session"
-      [currentTrack]="currentTrack"
-    ></app-lecteur>    </div>
-  
-    <div>
-      <h3>Etat Session</h3>
-      <div>{{session.status}}</div>
-    </div>
-    <div>
-      <h3>Temps</h3>
-      <div>{{session.startTime}}</div>
+<div class="container-fluid">
+  <div class="row">
+    <!-- Bloc d'Informations -->
+    <div class="col-md-8">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h4><fa-icon [icon]="faInfoCircle"></fa-icon> Session Information</h4>
+        </div>
+        <div class="card-body">
+          <h5>Nom de la Session: {{ session?.name }}</h5>
+          <p><strong>Now Playing:</strong> {{ currentTrack?.title }} by {{ currentTrack?.artist }}</p>
+          <p><strong>Etat de la Session:</strong> {{ session?.status }}</p>
+          <p><strong>Temps:</strong> {{ session?.startTime }}</p>
+        </div>
+      </div>
+
+      <!-- Playlist -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <h4><fa-icon [icon]="faMusic"></fa-icon> Playlist</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item" *ngFor="let track of playlist">
+              {{ track.title }} - {{ track.artist }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Utilisateurs et Scores -->
+      <div class="card">
+        <div class="card-header">
+          <h4><fa-icon [icon]="faUsers"></fa-icon> Utilisateurs et Scores</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item" *ngFor="let user of session?.users">
+              {{ user.userName }} - {{ user.score }}
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <div>
-      <h3>Playlist</h3>
-      <ul>
-        <li *ngFor="let track of playlist">
-          {{ track.title }} - {{ track.artist }}
-        </li>
-      </ul>
-    </div>
-  
-    <div>
-      <h3>Users</h3>
-      <ul>
-        <li *ngFor="let user of session.users">
-          {{ user.userName }} - {{ user.score }}
-        </li>
-      </ul>
-    </div>
-  
-    <div>
-      <h3>Scores</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Score</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let score of scores">
-            <td>{{ score.user.userName }}</td>
-            <td>{{ score.score }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Bloc d'Actions -->
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h4><fa-icon [icon]="faPlay"></fa-icon> Actions</h4>
+        </div>
+        <div class="card-body d-flex flex-column align-items-center">
+          <button (click)="startSession()" class="btn-shared btn-primary mb-3.5" [disabled]="playlist.length <= 0">
+            <fa-icon [icon]="faPlay"></fa-icon> Start Session
+          </button>
+          <button (click)="stopSession()" class="btn-shared btn-primary mb-3.5">
+            <fa-icon [icon]="faStop"></fa-icon> Stop Session
+          </button>
+          <button (click)="leaveSession()" class="btn-shared btn-primary mb-3.5">
+            <fa-icon [icon]="faSignOutAlt"></fa-icon> Leave Session
+          </button>
+        </div>
+      </div>
+
+      <!-- Bloc Lecteur de Musique -->
+      <div class="card">
+        <div class="card-header">
+          <h4><fa-icon [icon]="faHeadphonesAlt"></fa-icon> Lecteur de Musique</h4>
+        </div>
+        <div class="card-body">
+          <app-lecteur [session]="session" [currentTrack]="currentTrack"></app-lecteur>
+        </div>
+      </div>
     </div>
   </div>
-  
+</div>

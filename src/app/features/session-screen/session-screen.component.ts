@@ -11,14 +11,16 @@ import { PlaylistService } from '../../core/services/utils/playlistService';
 import { Subscription } from 'rxjs';
 import { WebSocketService } from '@services/web-socket.service';
 import { UserService } from '@services/user.service';
-import { AuthService } from '@services/auth.service';
+import { AuthService } from '@services/auth.service'; 
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlay, faStop, faSignOutAlt, faInfoCircle, faMusic, faUsers, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-session-screen',
   standalone: true,
   templateUrl: './session-screen.component.html',
   styleUrls: ['./session-screen.component.css'],
-  imports: [LecteurComponent, FormsModule, CommonModule]
+  imports: [LecteurComponent, FormsModule, CommonModule ,FontAwesomeModule]
 })
 export class SessionScreenComponent implements OnInit, OnDestroy {
   @ViewChild(LecteurComponent) lecteurComponent!: LecteurComponent;
@@ -29,7 +31,14 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
   currentTrack: TrackDTO | null = null;
   scores: { user: User, score: number }[] = [];
   currentUser: User | null = null;
-
+  faPlay = faPlay;
+  faStop = faStop;
+  faSignOutAlt = faSignOutAlt;
+  faInfoCircle = faInfoCircle;
+  faMusic = faMusic;
+  faUsers = faUsers;
+  faHeadphonesAlt = faHeadphonesAlt;
+  
   private playlistSubscription: Subscription = new Subscription();
   private sessionSubscription: Subscription = new Subscription();
   private userSubscription: Subscription = new Subscription();
@@ -115,15 +124,24 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     }
   }
 
-  startCountdown(time: number) {
+  startCountdown(time: number, nextMusic: boolean = false) {
     this.countdown = time;
     let interval = setInterval(() => {
       this.countdown--;
       if (this.countdown === 0) {
         clearInterval(interval);
         this.sessionStarted = true;
+        this.showSubmitButton = true;
         this.sessionPaused = false;
-        this.lecteurComponent.trackResumed.emit();  
+        this.hasBuzzed = false;
+  
+        // Si l'action "NEXT_MUSIC" est demandée, on appelle nextTrack() à la fin du compte à rebours
+        if (nextMusic) {
+          this.lecteurComponent.nextTrackEvent.emit();  
+
+        } else{
+          this.lecteurComponent.trackResumed.emit();  
+        }
       }
     }, 1000);
   }
@@ -157,7 +175,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
           this.session = updatedSession;
           this.updateDOMForTrackChange(message);
         });
-        this.lecteurComponent.nextTrackEvent.emit();  
+        this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
 
         break;
       case 'SESSION_FINISHED':
@@ -206,10 +224,19 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
 
   updateDOMForTrackChange(direction: string): void {
     if (this.session) {
-      const currentTrack = this.session.musicList[this.session.currentMusicIndex];
-      this.displayTrackChangeNotification(currentTrack, direction);
+      this.sessionService.getCurrentMusicIndex(this.session.id).subscribe(currentMusicIndex => {
+        if (currentMusicIndex < 0 || currentMusicIndex >= this.playlist.length) {
+          console.error('Invalid music index from backend.');
+          return;
+        }
+
+        const nextTrack = this.playlist[currentMusicIndex];
+    
+      }, error => {
+        console.error('Error retrieving current music index:', error);
+      });
     }
-  }
+  } 
 
   displayTrackChangeNotification(track: TrackDTO, direction: string): void {
     const message = direction === 'NEXT_TRACK' ? 'Next track playing' : 'Previous track playing';

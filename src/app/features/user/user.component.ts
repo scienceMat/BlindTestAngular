@@ -207,20 +207,25 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 }
 
-  startCountdown(time: number) {
-    this.countdown = time;
-    let interval = setInterval(() => {
-      this.countdown--;
-      if (this.countdown === 0) {
-        clearInterval(interval);
-        this.sessionStarted = true;
-        this.showSubmitButton = true;
-        this.sessionPaused = false;
-        this.showCountdown = false;
-        this.hasBuzzed = false;
+startCountdown(time: number, nextMusic: boolean = false) {
+  this.countdown = time;
+  let interval = setInterval(() => {
+    this.countdown--;
+    if (this.countdown === 0) {
+      clearInterval(interval);
+      this.sessionStarted = true;
+      this.showSubmitButton = true;
+      this.sessionPaused = false;
+      this.showCountdown = false;
+      this.hasBuzzed = false;
+
+      // Si l'action "NEXT_MUSIC" est demandée, on appelle nextTrack() à la fin du compte à rebours
+      if (nextMusic) {
+        this.nextTrack();
       }
-    }, 1000);
-  }
+    }
+  }, 1000);
+}
 
   handleWebSocketMessage(message: string): void {
     console.log('Received WebSocket message:', message);
@@ -242,14 +247,12 @@ export class UserComponent implements OnInit, OnDestroy {
           this.showRanking = false;
           this.sessionPaused = false;
           this.nextRound();  // Passer au round suivant après un délai
-        }, 15000); // Afficher les scores pendant 5 secondes avant de les masquer
+        }, 5000); // Afficher les scores pendant 5 secondes avant de les masquer
         break;
       
       case 'NEXT_MUSIC':
         this.round = this.round +1
-        this.startCountdown(10);
-        this.nextTrack();  // Passer à la musique suivante
-
+        this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
         break;
       
       case 'SESSION_FINISHED':
