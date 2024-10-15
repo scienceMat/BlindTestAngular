@@ -27,7 +27,7 @@
     "@stomp/stompjs": "^7.0.0",
     "blind-test-angular": "file:",
     "bootstrap": "^5.3.3",
-    "express": "^4.18.2",
+    "express": "^4.21.2",
     "ngx-socket-io": "^4.7.0",
     "primeicons": "^7.0.0",
     "primeng": "^17.18.4",

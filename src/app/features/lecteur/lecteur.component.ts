@@ -14,6 +14,8 @@ import { LoginButton } from '../../shared/components/LoginButton/login-button.co
 import { DisplayPlaylistComponent } from '../admin/components/display-playlist/display-playlist.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
 import { PlaylistService } from '../../core/services/utils/playlistService';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons'; // Import de l'icône plus
 
 @Component({
   selector: 'app-lecteur',
@@ -27,6 +29,7 @@ import { PlaylistService } from '../../core/services/utils/playlistService';
     LoginButton,
     DisplayPlaylistComponent,
     InputTextComponent,
+    FontAwesomeModule
   ],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
@@ -48,6 +51,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
   trackDuration: number = 0;
   selectedSessionId: number | null = null;
   userId: number = 1; // Example user ID
+  faPlus = faPlus;
 
   private clientId = '909dc01e3aee4ec4b72b8738a1ea7f1d';
   private redirectUri = 'http://localhost:4200/callback';

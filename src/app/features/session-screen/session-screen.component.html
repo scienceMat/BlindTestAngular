@@ -5,7 +5,7 @@
   <div class="d-flex flex-row gap-4 h-100">
 
     <!-- Bloc Gauche : Informations de la session et boutons d'action, prenant 50% de la largeur -->
-    <div class="card flex-grow-1 d-flex flex-column justify-content-between bloc-mw">
+    <div class="card flex-grow-1 d-flex flex-column justify-content-between bloc-mw-mh">
       <img src="assets/session-photo.jpg" class="card-img-top bloc-img" alt="Session Image" />
       <div class="card-body">
         <h4 class="card-title"><fa-icon [icon]="faInfoCircle"></fa-icon> Session Information</h4>
@@ -16,7 +16,7 @@
       </div>
 
       <!-- Boutons d'action -->
-      <div class="card-footer">
+      <div class="card-body">
         <button (click)="startSession()" class="btn btn-success w-100 mb-2" [disabled]="playlist.length <= 0">
           <fa-icon [icon]="faPlay"></fa-icon> Start Session
         </button>
@@ -29,18 +29,20 @@
       </div>
 
       <!-- Liste des Utilisateurs et Scores -->
-      <div class="card mt-3 bloc-mw">
+      <div class="card-body">
         <div class="card-header">
           <h4><fa-icon [icon]="faUsers"></fa-icon> Utilisateurs et Scores</h4>
         </div>
-        <div class="card-body">
           <ul class="list-group">
             <li class="list-group-item" *ngFor="let user of session?.users">
               {{ user.userName }} - {{ user.score }}
             </li>
           </ul>
-        </div>
       </div>
+      <div class="card-body">
+        <app-lecteur [session]="session" [currentTrack]="currentTrack"></app-lecteur>
+      </div>
+
     </div>
 
     <!-- Bloc Droit : Playlist (Musiques sous forme de cartes), prenant 50% de la largeur -->

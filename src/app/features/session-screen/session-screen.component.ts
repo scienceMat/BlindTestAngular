@@ -65,7 +65,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-   /* const sessionId = this.route.snapshot.paramMap.get('id');
+    const sessionId = this.route.snapshot.paramMap.get('id');
 
     this.userSubscription = this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
@@ -98,44 +98,44 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
         this.currentTrack = session.currentMusic;
         console.log('Updated session in SessionScreenComponent:', session);
       }
-    });*/
-    this.currentUser = {
-      id: 1,
-      userName: 'JohnDoe',
-      password: 'password123',
-      isAdmin: true,
-      score: 100,
-      ready: true
-    };
+    });
+    // this.currentUser = {
+    //   id: 1,
+    //   userName: 'JohnDoe',
+    //   password: 'password123',
+    //   isAdmin: true,
+    //   score: 100,
+    //   ready: true
+    // };
 
-    // Simuler une session avec une playlist, utilisateurs, et des scores
-    this.session = {
-      id: 1,
-      name: 'Session de Blind Test',
-      adminId: 1,
-      users: [
-        { id: 1, userName: 'JohnDoe', password: 'password123', isAdmin: true, score: 100, ready: true },
-        { id: 2, userName: 'JaneDoe', password: 'password456', isAdmin: false, score: 80, ready: true },
-      ],
-      musicList: [
-        { title: 'Song 1', image: 'image1.jpg', artist: 'Artist 1', filePath: 'path/to/song1.mp3', duration_ms: 210000 },
-        { title: 'Song 2', image: 'image2.jpg', artist: 'Artist 2', filePath: 'path/to/song2.mp3', duration_ms: 180000 },
-      ],
-      scores: {
-        1: 100, // Score de JohnDoe
-        2: 80   // Score de JaneDoe
-      },
-      currentMusicIndex: 0,
-      currentMusic: { title: 'Song 1', image: 'image1.jpg', artist: 'Artist 1', filePath: 'path/to/song1.mp3', duration_ms: 210000 },
-      status: 'active',
-      startTime: new Date(),
-      endTime: new Date(new Date().getTime() + 3600000), // 1 heure après le début
-      questionStartTime: new Date(),
-    };
+    // // Simuler une session avec une playlist, utilisateurs, et des scores
+    // this.session = {
+    //   id: 1,
+    //   name: 'Session de Blind Test',
+    //   adminId: 1,
+    //   users: [
+    //     { id: 1, userName: 'JohnDoe', password: 'password123', isAdmin: true, score: 100, ready: true },
+    //     { id: 2, userName: 'JaneDoe', password: 'password456', isAdmin: false, score: 80, ready: true },
+    //   ],
+    //   musicList: [
+    //     { title: 'Song 1', image: 'image1.jpg', artist: 'Artist 1', filePath: 'path/to/song1.mp3', duration_ms: 210000 },
+    //     { title: 'Song 2', image: 'image2.jpg', artist: 'Artist 2', filePath: 'path/to/song2.mp3', duration_ms: 180000 },
+    //   ],
+    //   scores: {
+    //     1: 100, // Score de JohnDoe
+    //     2: 80   // Score de JaneDoe
+    //   },
+    //   currentMusicIndex: 0,
+    //   currentMusic: { title: 'Song 1', image: 'image1.jpg', artist: 'Artist 1', filePath: 'path/to/song1.mp3', duration_ms: 210000 },
+    //   status: 'active',
+    //   startTime: new Date(),
+    //   endTime: new Date(new Date().getTime() + 3600000), // 1 heure après le début
+    //   questionStartTime: new Date(),
+    // };
 
-    // Simuler la playlist dans le service de playlist
-    this.playlist = this.session.musicList;
-    this.currentTrack = this.playlist[this.session.currentMusicIndex];
+    // // Simuler la playlist dans le service de playlist
+    // this.playlist = this.session.musicList;
+    // this.currentTrack = this.playlist[this.session.currentMusicIndex];
 
     console.log('Données en dur pour la session:', this.session);
   }
