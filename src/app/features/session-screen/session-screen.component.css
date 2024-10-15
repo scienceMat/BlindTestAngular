@@ -2,32 +2,60 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
   }
-  
+
   .card-header {
     background-color: #4a4aff;
     color: white;
     font-weight: bold;
   }
-  
+
+  .bloc-mw{
+    max-width:480px;
+  }
+
+
   .btn {
     width: 100%;
     font-size: 16px;
     padding: 10px;
     transition: background-color 0.3s;
   }
-  
+
   .btn-success:hover {
     background-color: #3cb371;
   }
-  
+
   .btn-danger:hover {
     background-color: #dc3545;
   }
-  
+
   .btn-secondary:hover {
     background-color: #6c757d;
   }
-  
+
   .list-group-item {
     font-size: 16px;
   }
+
+
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+
+.btn {
+  transition: background-color 0.3s ease;
+}
+
+.card-body h5 {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.card-body p {
+  font-size: 14px;
+}
+
+.card-footer {
+  background-color: #f8f9fa;
+}

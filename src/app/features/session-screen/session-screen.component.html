@@ -1,35 +1,35 @@
-<div class="container-fluid">
-  <div class="row">
-    <!-- Bloc d'Informations -->
-    <div class="col-md-8">
-      <div class="card mb-3">
-        <div class="card-header">
-          <h4><fa-icon [icon]="faInfoCircle"></fa-icon> Session Information</h4>
-        </div>
-        <div class="card-body">
-          <h5>Nom de la Session: {{ session?.name }}</h5>
-          <p><strong>Now Playing:</strong> {{ currentTrack?.title }} by {{ currentTrack?.artist }}</p>
-          <p><strong>Etat de la Session:</strong> {{ session?.status }}</p>
-          <p><strong>Temps:</strong> {{ session?.startTime }}</p>
-        </div>
+<div class="container-fluid flex-grow-1">
+  <h1 class="fs-8 text-center my-4">Session Details</h1>
+
+  <!-- Utilisation de Flexbox pour diviser l'écran en deux colonnes -->
+  <div class="d-flex flex-row gap-4 h-100">
+
+    <!-- Bloc Gauche : Informations de la session et boutons d'action, prenant 50% de la largeur -->
+    <div class="card flex-grow-1 d-flex flex-column justify-content-between bloc-mw">
+      <img src="assets/session-photo.jpg" class="card-img-top bloc-img" alt="Session Image" />
+      <div class="card-body">
+        <h4 class="card-title"><fa-icon [icon]="faInfoCircle"></fa-icon> Session Information</h4>
+        <h5>Nom de la Session: {{ session?.name }}</h5>
+        <p><strong>Now Playing:</strong> {{ currentTrack?.title }} by {{ currentTrack?.artist }}</p>
+        <p><strong>Etat de la Session:</strong> {{ session?.status }}</p>
+        <p><strong>Temps:</strong> {{ session?.startTime }}</p>
       </div>
 
-      <!-- Playlist -->
-      <div class="card mb-3">
-        <div class="card-header">
-          <h4><fa-icon [icon]="faMusic"></fa-icon> Playlist</h4>
-        </div>
-        <div class="card-body">
-          <ul class="list-group">
-            <li class="list-group-item" *ngFor="let track of playlist">
-              {{ track.title }} - {{ track.artist }}
-            </li>
-          </ul>
-        </div>
+      <!-- Boutons d'action -->
+      <div class="card-footer">
+        <button (click)="startSession()" class="btn btn-success w-100 mb-2" [disabled]="playlist.length <= 0">
+          <fa-icon [icon]="faPlay"></fa-icon> Start Session
+        </button>
+        <button (click)="stopSession()" class="btn btn-danger w-100 mb-2">
+          <fa-icon [icon]="faStop"></fa-icon> Stop Session
+        </button>
+        <button (click)="leaveSession()" class="btn btn-secondary w-100">
+          <fa-icon [icon]="faSignOutAlt"></fa-icon> Leave Session
+        </button>
       </div>
 
-      <!-- Utilisateurs et Scores -->
-      <div class="card">
+      <!-- Liste des Utilisateurs et Scores -->
+      <div class="card mt-3 bloc-mw">
         <div class="card-header">
           <h4><fa-icon [icon]="faUsers"></fa-icon> Utilisateurs et Scores</h4>
         </div>
@@ -43,32 +43,16 @@
       </div>
     </div>
 
-    <!-- Bloc d'Actions -->
-    <div class="col-md-4">
-      <div class="card mb-3">
-        <div class="card-header">
-          <h4><fa-icon [icon]="faPlay"></fa-icon> Actions</h4>
-        </div>
-        <div class="card-body d-flex flex-column align-items-center">
-          <button (click)="startSession()" class="btn-shared btn-primary mb-3.5" [disabled]="playlist.length <= 0">
-            <fa-icon [icon]="faPlay"></fa-icon> Start Session
-          </button>
-          <button (click)="stopSession()" class="btn-shared btn-primary mb-3.5">
-            <fa-icon [icon]="faStop"></fa-icon> Stop Session
-          </button>
-          <button (click)="leaveSession()" class="btn-shared btn-primary mb-3.5">
-            <fa-icon [icon]="faSignOutAlt"></fa-icon> Leave Session
-          </button>
-        </div>
-      </div>
-
-      <!-- Bloc Lecteur de Musique -->
-      <div class="card">
-        <div class="card-header">
-          <h4><fa-icon [icon]="faHeadphonesAlt"></fa-icon> Lecteur de Musique</h4>
-        </div>
+    <!-- Bloc Droit : Playlist (Musiques sous forme de cartes), prenant 50% de la largeur -->
+    <div class="d-flex flex-column w-100">
+      <div class="card mb-3 " *ngFor="let track of playlist">
+        <img src="{{ track.image || 'assets/default-music.jpg' }}" class="card-img-top bloc-img" alt="{{ track.title }}" />
         <div class="card-body">
-          <app-lecteur [session]="session" [currentTrack]="currentTrack"></app-lecteur>
+          <h5 class="card-title">{{ track.title }}</h5>
+          <p class="card-text">{{ track.artist }}</p>
+        </div>
+        <div class="card-footer text-muted">
+          Durée : {{ track.duration_ms }} sec
         </div>
       </div>
     </div>

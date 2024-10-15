@@ -11,7 +11,7 @@ import { PlaylistService } from '../../core/services/utils/playlistService';
 import { Subscription } from 'rxjs';
 import { WebSocketService } from '@services/web-socket.service';
 import { UserService } from '@services/user.service';
-import { AuthService } from '@services/auth.service'; 
+import { AuthService } from '@services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlay, faStop, faSignOutAlt, faInfoCircle, faMusic, faUsers, faHeadphonesAlt } from '@fortawesome/free-solid-svg-icons';
 
@@ -38,7 +38,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
   faMusic = faMusic;
   faUsers = faUsers;
   faHeadphonesAlt = faHeadphonesAlt;
-  
+
   private playlistSubscription: Subscription = new Subscription();
   private sessionSubscription: Subscription = new Subscription();
   private userSubscription: Subscription = new Subscription();
@@ -65,7 +65,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const sessionId = this.route.snapshot.paramMap.get('id');
+   /* const sessionId = this.route.snapshot.paramMap.get('id');
 
     this.userSubscription = this.authService.currentUser.subscribe(user => {
       this.currentUser = user;
@@ -98,14 +98,53 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
         this.currentTrack = session.currentMusic;
         console.log('Updated session in SessionScreenComponent:', session);
       }
-    });
+    });*/
+    this.currentUser = {
+      id: 1,
+      userName: 'JohnDoe',
+      password: 'password123',
+      isAdmin: true,
+      score: 100,
+      ready: true
+    };
+
+    // Simuler une session avec une playlist, utilisateurs, et des scores
+    this.session = {
+      id: 1,
+      name: 'Session de Blind Test',
+      adminId: 1,
+      users: [
+        { id: 1, userName: 'JohnDoe', password: 'password123', isAdmin: true, score: 100, ready: true },
+        { id: 2, userName: 'JaneDoe', password: 'password456', isAdmin: false, score: 80, ready: true },
+      ],
+      musicList: [
+        { title: 'Song 1', image: 'image1.jpg', artist: 'Artist 1', filePath: 'path/to/song1.mp3', duration_ms: 210000 },
+        { title: 'Song 2', image: 'image2.jpg', artist: 'Artist 2', filePath: 'path/to/song2.mp3', duration_ms: 180000 },
+      ],
+      scores: {
+        1: 100, // Score de JohnDoe
+        2: 80   // Score de JaneDoe
+      },
+      currentMusicIndex: 0,
+      currentMusic: { title: 'Song 1', image: 'image1.jpg', artist: 'Artist 1', filePath: 'path/to/song1.mp3', duration_ms: 210000 },
+      status: 'active',
+      startTime: new Date(),
+      endTime: new Date(new Date().getTime() + 3600000), // 1 heure après le début
+      questionStartTime: new Date(),
+    };
+
+    // Simuler la playlist dans le service de playlist
+    this.playlist = this.session.musicList;
+    this.currentTrack = this.playlist[this.session.currentMusicIndex];
+
+    console.log('Données en dur pour la session:', this.session);
   }
 
   private initializeWebSocketConnection(sessionId: number): void {
     if (sessionId) {
       this.subscription.unsubscribe();  // Désabonnement pour éviter les multiples abonnements
       this.subscription = new Subscription();
-      
+
       this.subscription.add(
         this.webSocketService.getConnectionState().subscribe(isConnected => {
           this.isConnected = isConnected;
@@ -134,13 +173,13 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
         this.showSubmitButton = true;
         this.sessionPaused = false;
         this.hasBuzzed = false;
-  
+
         // Si l'action "NEXT_MUSIC" est demandée, on appelle nextTrack() à la fin du compte à rebours
         if (nextMusic) {
-          this.lecteurComponent.nextTrackEvent.emit();  
+          this.lecteurComponent.nextTrackEvent.emit();
 
         } else{
-          this.lecteurComponent.trackResumed.emit();  
+          this.lecteurComponent.trackResumed.emit();
         }
       }
     }, 1000);
@@ -154,12 +193,12 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
         this.startCountdown(10);
         break;
       case 'PAUSE_MUSIC':
-        this.lecteurComponent.trackPaused.emit();  
+        this.lecteurComponent.trackPaused.emit();
         break;
       case 'END_OF_ROUND':
         this.sessionPaused = true;
         this.showRanking = true;
-        this.lecteurComponent.trackPaused.emit();  
+        this.lecteurComponent.trackPaused.emit();
         setTimeout(() => {
           this.showRanking = false;
           this.sessionPaused = false;
@@ -181,14 +220,14 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
       case 'SESSION_FINISHED':
         this.sessionStarted = false;
         this.sessionPaused = false;
-        this.lecteurComponent.trackPaused.emit();  
+        this.lecteurComponent.trackPaused.emit();
 
         // Display the final score
         break;
       case 'STOP_SESSION':
         this.sessionStarted = false;
         this.sessionPaused = true;
-        this.lecteurComponent.trackPaused.emit();  
+        this.lecteurComponent.trackPaused.emit();
 
         // pause
         break;
@@ -198,7 +237,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
           this.session = updatedSession;
           this.updateDOMForTrackChange(message);
         });
-        this.lecteurComponent.previousTrackEvent.emit(); 
+        this.lecteurComponent.previousTrackEvent.emit();
 
         break;
       default:
@@ -231,12 +270,12 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
         }
 
         const nextTrack = this.playlist[currentMusicIndex];
-    
+
       }, error => {
         console.error('Error retrieving current music index:', error);
       });
     }
-  } 
+  }
 
   displayTrackChangeNotification(track: TrackDTO, direction: string): void {
     const message = direction === 'NEXT_TRACK' ? 'Next track playing' : 'Previous track playing';
@@ -269,12 +308,12 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     if (sessionId) {
       this.sessionService.startSession(sessionId).subscribe((response) => {
         this.sessionService.setSession(response);
-  
+
         // Récupérer la session mise à jour depuis le backend, incluant l'index actuel de la musique
         this.sessionService.getSession(sessionId).subscribe((session) => {
           this.session = session;
           const currentMusicIndex = session.currentMusicIndex;
-  
+
           // Assurez-vous que l'index de la musique est valide et qu'il existe une playlist
           if (currentMusicIndex !== undefined && currentMusicIndex >= 0 && currentMusicIndex < this.playlist.length) {
             // Synchroniser la musique avec l'index du backend
@@ -283,12 +322,12 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
             console.error('Invalid music index or empty playlist:', currentMusicIndex);
           }
         });
-        
+
         console.log('Session started:', response);
       });
     }
   }
-  
+
 
   stopSession() {
     const sessionId = this.session?.id;
