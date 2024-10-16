@@ -53,14 +53,57 @@ export class UserComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.userId = this.authService.currentUserValue?.id;
-    if (this.userId) {
-      this.checkSession();
-    }
-    this.loadSessions();
-    this.webSocketService.connectSocket();
-    this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
+    // this.userId = this.authService.currentUserValue?.id;
+    // if (this.userId) {
+    //   this.checkSession();
+    // }
+    // this.loadSessions();
+    // this.webSocketService.connectSocket();
+    // this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
+// Simuler un utilisateur connecté
+    this.userId = 1; // User ID simulé
+    this.userName = 'John Doe'; // Nom d'utilisateur simulé
 
+    // Simuler une liste de sessions
+    this.sessions = [
+      {
+        id: 1,
+        name: 'Session 1',
+        adminId: 1,
+        users: [
+          { id: 1, userName: 'John Doe', isAdmin: true, password:"mdp" },
+          { id: 2, userName: 'Jane Doe', isAdmin: false,password:"mdp" },
+        ],
+        musicList: [],
+        scores: { 1: 100, 2: 80 },
+        currentMusicIndex: 0,
+        status: 'in-progress',
+        startTime: new Date(),
+        endTime: new Date(new Date().getTime() + 3600000), // 1 heure après le début
+        questionStartTime: new Date(),
+      },
+      {
+        id: 2,
+        name: 'Session 2',
+        adminId: 2,
+        users: [{ id: 3, userName: 'Jim Beam', isAdmin: false,password:"mdp"  }],
+        musicList: [],
+        scores: { 3: 60 },
+        currentMusicIndex: 0,
+        status: 'question',
+        startTime: new Date(),
+        endTime: new Date(new Date().getTime() + 3600000),
+        questionStartTime: new Date(),
+      }
+    ];
+
+    // Simuler une session sélectionnée
+    this.selectedSessionId = this.sessions[0].id; // Session par défaut sélectionnée
+    this.session = this.sessions[1]; // Simuler que la première session est active
+
+    // Simuler une connexion WebSocket fictive
+    this.webSocketService.connectSocket();
+    this.initializeWebSocketConnection(); // Initialiser avec la session simulée
   }
 
   ngOnDestroy(): void {
@@ -89,7 +132,7 @@ export class UserComponent implements OnInit, OnDestroy {
     this.saveSessionConnection(session.id);
     console.log('Selected session:', session);
 
-    
+
   }
 
   private saveSessionConnection(sessionId: number) {
@@ -141,16 +184,16 @@ export class UserComponent implements OnInit, OnDestroy {
         title: title,
         artist: artist,
       };
-  
+
       this.sessionService.submitAnswer(this.session.id, answer).subscribe(
         (response: any) => {
           console.log('Answer submitted', response);
-  
+
           // Récupérer les scores dans la session renvoyée
           if (response && response.scores) {
             this.updateScores(response.scores);
           }
-  
+
           this.showSubmitButton = false;
         },
         (error) => {
@@ -159,14 +202,14 @@ export class UserComponent implements OnInit, OnDestroy {
       );
     }
   }
-  
+
   updateScores(scores: { [userId: number]: number }) {
     // Transformer les scores en un tableau d'objets pour le ranking
     this.ranking = Object.entries(scores).map(([userId, score]) => ({
       userId: Number(userId),
       score: score
     }));
-  
+
     console.log('Ranking updated:', this.ranking);
   }
 
@@ -184,7 +227,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
 
   private initializeWebSocketConnection(): void {
-    
+
   // Vérifier que la session est sélectionnée avant d'essayer de se connecter
   if (this.sessionService.getSessionId()) {
     this.cleanupSubscriptions();
@@ -229,7 +272,7 @@ startCountdown(time: number, nextMusic: boolean = false) {
 
   handleWebSocketMessage(message: string): void {
     console.log('Received WebSocket message:', message);
-    
+
     switch (message) {
       case 'PAUSE_MUSIC':
       this.pauseMusic();  // API Spotify pour mettre en pause la musique
@@ -239,7 +282,7 @@ startCountdown(time: number, nextMusic: boolean = false) {
         this.showCountdown = true;
         this.startCountdown(10);
         break;
-      
+
       case 'END_OF_ROUND':
         this.showRanking = true;
         this.sessionPaused = true;
@@ -249,20 +292,20 @@ startCountdown(time: number, nextMusic: boolean = false) {
           this.nextRound();  // Passer au round suivant après un délai
         }, 5000); // Afficher les scores pendant 5 secondes avant de les masquer
         break;
-      
+
       case 'NEXT_MUSIC':
         this.round = this.round +1
         this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
         break;
-      
+
       case 'SESSION_FINISHED':
         this.sessionStarted = false;
         break;
-      
+
       case 'STOP_SESSION':
         this.sessionStarted = false;
         break;
-  
+
       default:
         this.handleScoreUpdates(message);
     }
@@ -273,7 +316,7 @@ startCountdown(time: number, nextMusic: boolean = false) {
       console.log('Music paused');
     });
   }
-  
+
   nextTrack(): void {
     this.spotifyService.nextTrack().subscribe(() => {
       console.log('Next track is playing');

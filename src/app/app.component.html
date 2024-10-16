@@ -1,12 +1,9 @@
-<!-- <nav>
-  <ul>
-    <li><a routerLink="/music">Music</a></li>
-    <li><a routerLink="/sessions">Sessions</a></li>
-    <li><a routerLink="/admin">Admin</a></li>
-  </ul>
-</nav> -->
-<app-header></app-header>
+<!-- Appliquer le *ngIf directement sur les composants -->
+<app-header-user *ngIf="!isAdmin" [sessionId]="sessionId"></app-header-user>
+<app-header *ngIf="isAdmin"></app-header>
 
 <router-outlet></router-outlet>
 
-<app-footer></app-footer>
+<!-- Appliquer le *ngIf directement sur les composants -->
+<app-footer-user *ngIf="!isAdmin" [userName]="userName"></app-footer-user>
+<app-footer *ngIf="isAdmin"></app-footer>

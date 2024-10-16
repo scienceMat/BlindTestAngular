@@ -34,7 +34,7 @@
     padding: 20px;
     background-color: #f0f2f5;
   }
-  
+
 
 :host ::ng-deep .p-tabview-nav li .p-tabview-nav-link {
     color: white;
@@ -82,6 +82,13 @@
 
 }
 
+body {
+  font-family: "Montserrat", sans-serif;
+  height: 100%;
+  margin: 0;
+}
+
+
 .btn-shared[disabled] {
     background: #e0e0e0; /* Light gray background for disabled state */
     color: #a0a0a0; /* Light gray text color */
@@ -97,7 +104,7 @@
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .button-group {
     display: flex;
     justify-content: space-between;
