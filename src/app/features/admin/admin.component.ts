@@ -32,12 +32,13 @@ import { switchMap } from 'rxjs/operators';
 export class AdminComponent implements OnInit {
   sessionName: string = '';
   sessions: Session[] = [];
-  selectedSessionId: number | null = null;
+  selectedSessionId: string | null = null;
   connected: boolean = false;
   sessionStarted: boolean = false;
   sessionPaused: boolean = false;
   showRanking: boolean = false;
   hasBuzzed: boolean = false;
+  activeTab: string = 'blind-tests'; // Définit l'onglet actif
 
   ranking: any[] = [];
   showSubmitButton: boolean = true;
@@ -77,6 +78,11 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  // Ouvrir un blind test
+  openBlindTest(blindTestId: string) {
+    this.router.navigate(['/session-screen', blindTestId]);
+  }
+
   private getHashParams(): { [key: string]: string } {
     const hash = window.location.hash.substring(1);
     return hash.split('&').reduce((acc, item) => {
@@ -108,6 +114,14 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  navigateToCreateBlindTest() {
+    this.activeTab = 'create-blind-test';
+  }
+
+  navigateToBlindTests() {
+    this.activeTab = 'blind-tests';
+  }
+
   createSession() {
     const currentUser = this.authService.currentUserValue;
     if (currentUser) {
@@ -115,6 +129,7 @@ export class AdminComponent implements OnInit {
       this.sessionService.createSession({ name: this.sessionName, adminId: adminId })
         .pipe(
           switchMap((createdSession) => {
+            this.activeTab = 'blind-tests'; // Retourner à l'onglet Blind Tests après création
             console.log('Session created:', createdSession);
             return this.sessionService.getAllSessions();
           })
@@ -133,7 +148,7 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  private saveSessionConnection(sessionId: number) {
+  private saveSessionConnection(sessionId: string) {
     localStorage.setItem('connectedSessionId', sessionId.toString());
   }
 
@@ -151,7 +166,7 @@ export class AdminComponent implements OnInit {
   private checkSessionConnection(userId: number) {
     const sessionId = localStorage.getItem('connectedSessionId');
     if (sessionId) {
-      this.sessionService.getSession(parseInt(sessionId)).subscribe(
+      this.sessionService.getSession(sessionId).subscribe(
         (session) => {
           if (session && session.users.some(participant => participant.id === userId)) {
             this.selectedSessionId = session.id;

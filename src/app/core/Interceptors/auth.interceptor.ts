@@ -13,7 +13,8 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authService.getToken();
     const currentUser: User | null = this.authService.currentUserValue;
-
+    console.log(currentUser);
+    console.log(currentUser?.isAdmin)
     // Vérifie si l'utilisateur est un admin
     if (currentUser && currentUser.isAdmin) {
       const spotifyToken = localStorage.getItem('spotify_token');

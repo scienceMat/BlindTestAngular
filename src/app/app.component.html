@@ -1,5 +1,5 @@
 <!-- Appliquer le *ngIf directement sur les composants -->
-<app-header-user *ngIf="!isAdmin" [sessionId]="sessionId"></app-header-user>
+<app-header-user *ngIf="!isAdmin" [sessionId]="sessionCode"></app-header-user>
 <app-header *ngIf="isAdmin"></app-header>
 
 <router-outlet></router-outlet>

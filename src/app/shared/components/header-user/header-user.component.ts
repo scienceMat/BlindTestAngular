@@ -8,6 +8,6 @@ import {Component, Input} from '@angular/core';
   styleUrl: './header-user.component.css'
 })
 export class HeaderUserComponent {
-  @Input() sessionId!: number; // ID de la session
+  @Input() sessionId!:  string | null; // ID de la session
 
 }

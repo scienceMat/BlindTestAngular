@@ -10,7 +10,10 @@ import {Router} from '@angular/router';
 })
 export class AuthService {
   private readonly apiUrl = 'http://localhost:8080/users';
-  private currentUserSubject: BehaviorSubject<User | null>;
+  public currentUserSubject: BehaviorSubject<User | null>;
+  public currentUserGuestSubject: BehaviorSubject<string | null>;
+
+  
   public currentUser: Observable<User | null>;
   public readonly USER_KEY = 'auth-user';
   public readonly TOKEN_KEY = 'auth-token';
@@ -20,7 +23,11 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {
     const storedUser = localStorage.getItem(this.USER_KEY);
+    const storedGuestUser = localStorage.getItem('guest-user'); // Stockage pour l'utilisateur invité
+
     this.currentUserSubject = new BehaviorSubject<User | null>(storedUser ? JSON.parse(storedUser) : null);
+    this.currentUserGuestSubject = new BehaviorSubject<string | null>(storedGuestUser ? storedGuestUser : null);
+
     this.currentUser = this.currentUserSubject.asObservable();
     this.checkSessionExpiry();
   }
@@ -29,8 +36,9 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  createUser(user: any): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/create`, user);
+ 
+  public createUser(user: { userName: string, password: string, isAdmin: boolean }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/create`, user);
   }
 
   public login(userName: string, password: string): Observable<UserResponse> {
@@ -80,6 +88,11 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
+  public setCurrentUserGuest(username: string): void {
+    localStorage.setItem('guest-user', username);
+    this.currentUserGuestSubject.next(username);
+  }
+
   public getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
@@ -87,6 +100,11 @@ export class AuthService {
   public getCurrentUser(): User | null {
     const user = localStorage.getItem(this.USER_KEY);
     return user ? JSON.parse(user) : null;
+  }
+
+  public getCurrentUserGuest(): string | null {
+    const username = localStorage.getItem('guest-user');
+    return username;
   }
 
   public logout() {

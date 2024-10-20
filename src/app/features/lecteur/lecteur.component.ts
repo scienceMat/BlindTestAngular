@@ -16,6 +16,7 @@ import { InputTextComponent } from '../../shared/components/input/input.componen
 import { PlaylistService } from '../../core/services/utils/playlistService';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons'; // Import de l'icône plus
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-lecteur',
@@ -77,11 +78,14 @@ export class LecteurComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     public userService: UserService,
     private cdr: ChangeDetectorRef,
-    private playlistService: PlaylistService
+    private playlistService: PlaylistService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.token = localStorage.getItem('spotify_token') || '';
+    const sessionId = this.route.snapshot.paramMap.get('id');
+
     console.log('Validating Spotify token:', this.token); // Log pour vérifier le token
 
     // Extract and store the token from the URL hash if present
@@ -197,8 +201,8 @@ export class LecteurComponent implements OnInit, OnDestroy {
   }
 
   addTrackToPlaylist(track: any) {
-    this.selectedSessionId = this.sessionService.getSessionId();
-    if (this.selectedSessionId !== null) {
+    const sessionId = this.route.snapshot.paramMap.get('id');
+    if (sessionId !== null) {
       const music = {
         title: track.name,
         image: track.album.images[0]?.url,
@@ -207,7 +211,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
         duration_ms: track.duration_ms
       };
 
-      this.sessionService.addMusicToSession(this.selectedSessionId, music).subscribe((data: any) => {
+      this.sessionService.addMusicToSession(sessionId, music).subscribe((data: any) => {
         this.playlist = data.musics;
 
         // Add track to shared playlist
@@ -363,7 +367,7 @@ previousTrack() {
   }
 }
   startSession() {
-    const sessionId = this.sessionService.getSessionId();
+    const sessionId = this.route.snapshot.paramMap.get('id');
     if (sessionId) {
       this.sessionService.startSession(sessionId).subscribe((response) => {
         this.sessionService.setSession(response);

@@ -1,7 +1,7 @@
 import { TrackDTO } from "./trackDTO";
 import { User } from "./user.model";
 export interface Session {
-  id: number;
+  id: string;
   name: string;
   adminId: number;
   users: User[]; // Ensure this is using the correct User type
@@ -13,6 +13,7 @@ export interface Session {
   endTime: Date;
   questionStartTime: Date;
   currentMusic?: TrackDTO;
+  sessionCode: string;
 }
   
   

@@ -12,12 +12,12 @@ import { SessionScreenComponent } from './features/session-screen/session-screen
 import { CallbackComponent } from './features/callback/callback.component';
 
 export const routes: Routes = [
-  { path: '', component: UserComponent  },
+  { path: '',  redirectTo: 'login', pathMatch: 'full'  },
   { path: 'login', component: AuthComponent },
   { path: 'loginSpotify', component: LoginSpotifyComponent},
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard]},
   { path: 'sessions', component: SessionComponent, canActivate: [AuthGuard] },
-  { path: 'users', component: UserComponent },
+  { path: 'users/:sessionCode', component: UserComponent },
   { path: 'callback', component: CallbackComponent },
   { path: 'session-screen/:id', component: SessionScreenComponent, canActivate: [AdminGuard] }, // Add this route
 

@@ -6,7 +6,7 @@ import {TrackDTO} from '../models/trackDTO';
 
 export const musicResolver: ResolveFn<Observable<TrackDTO[]>> = (route: ActivatedRouteSnapshot) => {
   const sessionService = inject(SessionService);
-  let sessionId: number | null = null;
+  let sessionId: string | null = null;
 
   // Essayer de récupérer l'ID de session depuis SessionService
   sessionId = sessionService.getSessionId();
@@ -15,7 +15,7 @@ export const musicResolver: ResolveFn<Observable<TrackDTO[]>> = (route: Activate
   if (!sessionId) {
     const sessionIdFromStorage = localStorage.getItem('sessionId');
     if (sessionIdFromStorage) {
-      sessionId = Number(sessionIdFromStorage);
+      sessionId = sessionIdFromStorage;
     }
   }
 

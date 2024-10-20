@@ -15,7 +15,6 @@
 :host ::ng-deep .p-tabview-nav {
     justify-content: center;
     background: linear-gradient(to right, #6a11cb, #2575fc);
-    border-radius: 8px 8px 0 0;
     border: 0px;
 
 }
@@ -42,6 +41,14 @@
     border: 0;
 }
 
+:host ::ng-deep .p-tabview-nav {
+    justify-content: center;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    border-radius: 8px 8px 0 0;
+    border: none;
+    margin-bottom: 0;
+}
+
 :host ::ng-deep .p-tabview .p-tabview-nav li .p-tabview-nav-link {
     border:0
 }
@@ -55,7 +62,7 @@
   background: linear-gradient(to right, #6a11cb, #2575fc);
   color: white;
   padding: 20px;
-  border-radius: 0px 0px 8px 8px;
+  border-radius: 0px 0px 0px 0px;
 }
 
 .my-container .ui-buttonset:not(.ui-splitbutton) .ui-button {
@@ -83,22 +90,37 @@
     background-color: white;
 }
 
-.switch-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 16px;
-  }
-  
-  .switch-label {
-    margin-right: 8px;
-    color: white;
-  }
-  
-  .switch-text {
-    margin-left: 8px;
-    color: white;
-  }
   :host ::ng-deep .p-button-text {
     text-align: center;
+  }
+
+  .switch-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    padding: 10px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+  }
+  
+  .switch-container label {
+    margin-right: 10px;
+    margin-left: 10px;
+    color: white;
+    font-weight: bold;
+  }
+  
+  :host ::ng-deep .p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+    background-color: #6a11cb;
+    border-color: #6a11cb;
+  }
+  
+  :host ::ng-deep .p-inputswitch .p-inputswitch-slider {
+    background-color: white;
+    border-color: #6a11cb;
   }

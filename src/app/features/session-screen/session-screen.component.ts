@@ -73,10 +73,10 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     });
 
     if (sessionId && this.currentUser?.id) {
-      this.loadSession(parseInt(sessionId));
+      this.loadSession(sessionId);
       // this.checkSessionConnection(userId);
       this.webSocketService.connectSocket();
-      this.initializeWebSocketConnection(parseInt(sessionId)); // Pass sessionId for specific subscription
+      this.initializeWebSocketConnection(sessionId); // Pass sessionId for specific subscription
     } else {
       console.log("redirect to  admin")
       this.router.navigate(['/admin']); // Navigate back if session or user ID is missing
@@ -140,7 +140,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     console.log('Données en dur pour la session:', this.session);
   }
 
-  private initializeWebSocketConnection(sessionId: number): void {
+  private initializeWebSocketConnection(sessionId: string): void {
     if (sessionId) {
       this.subscription.unsubscribe();  // Désabonnement pour éviter les multiples abonnements
       this.subscription = new Subscription();
@@ -287,7 +287,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
     this.sessionSubscription.unsubscribe();
   }
 
-  loadSession(sessionId: number) {
+  loadSession(sessionId: string) {
     this.sessionService.getSession(sessionId).subscribe((session) => {
       this.session = session;
       this.playlistService.setPlaylist(session.musicList); // Set initial playlist
@@ -304,7 +304,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
   }
 
   startSession() {
-    const sessionId = this.sessionService.getSessionId();
+    const sessionId = this.route.snapshot.paramMap.get('id');
     if (sessionId) {
       this.sessionService.startSession(sessionId).subscribe((response) => {
         this.sessionService.setSession(response);

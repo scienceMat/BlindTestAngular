@@ -1,29 +1,46 @@
 <div class="auth-container">
+ 
+  <!-- Si le mode est Admin, affiche les onglets Admin, sinon l'onglet User -->
   <p-tabView [(activeIndex)]="activeIndex" class="custom-tabview">
-    <p-tabPanel header="Login">
+   
+  
+    <ng-container *ngIf="!isAdmin">
       <div class="panel-content">
-        <h2>Login</h2>
+        <h2>Join Session</h2>
+        <div class="p-fluid form-container">
+          <app-input-text placeholder="Pseudo" [(ngModel)]="userGuestName"></app-input-text>
+          <app-input-text placeholder="Session Code" [(ngModel)]="sessionCode"></app-input-text>
+          <button (click)="joinSessionAsUser()" class="btn-shared btn-secondary mb-3.5">Join</button>
+        </div>
+      </div>
+    </ng-container>
+
+    <p-tabPanel *ngIf="isAdmin" header="Login Admin">
+      <div class="panel-content">
+        <h2>Login Admin</h2>
         <div class="p-fluid form-container">
           <app-input-text placeholder="Username" [(ngModel)]="userName"></app-input-text>
           <app-input-text type="password" placeholder="Password" [(ngModel)]="password"></app-input-text>
-          <button (click)="login()" class="btn-shared btn-secondary mb-3.5">Login</button>
+          <button (click)="loginAsAdmin()" class="btn-shared btn-secondary mb-3.5">Login</button>
         </div>
       </div>
     </p-tabPanel>
-    <p-tabPanel header="Create User">
+
+    <p-tabPanel *ngIf="isAdmin" header="Create Admin">
       <div class="panel-content">
-        <h2>Create User</h2>
+        <h2>Create Admin</h2>
         <div class="p-fluid form-container">
-          <app-input-text placeholder="Username" [(ngModel)]="userName"></app-input-text>
+          <app-input-text placeholder="Admin Username" [(ngModel)]="userName"></app-input-text>
           <app-input-text type="password" placeholder="Password" [(ngModel)]="password"></app-input-text>
-          <div class="switch-container">
-            <label for="userTypeSwitch" class="switch-label">Choose User Type:</label>
-            <p-inputSwitch id="userTypeSwitch" [(ngModel)]="isAdmin" class="toggle-button"></p-inputSwitch>
-            <span class="switch-text">{{ isAdmin ? 'Admin' : 'User' }}</span>
-          </div>
-          <button (click)="createUser()" class="btn-shared btn-secondary mb-3.5">Create User</button>
+          <button (click)="createAdmin()" class="btn-shared btn-secondary mb-3.5">Create Admin</button>
         </div>
       </div>
     </p-tabPanel>
+    <div class="switch-container">
+      <label>User Mode</label>
+      <p-inputSwitch [(ngModel)]="isAdmin" binary="true"></p-inputSwitch>
+      <label> Admin Mode</label>
+    </div>
   </p-tabView>
+  
 </div>

@@ -11,6 +11,7 @@ export class AdminGuard implements CanActivate {
 
   canActivate(): boolean {
     const currentUser = this.authService.currentUserValue;
+    console.log(currentUser?.isAdmin);
     if (currentUser && currentUser.isAdmin) {
       if (this.authService.isAuthenticated() && this.authService.isSpotifyTokenValid()) {
         return true;

@@ -54,8 +54,8 @@
 <!--  <div>-->
 <div class="centered-content" [ngClass]="{
   'waiting-bg': session?.status === 'waiting',
-  'ready-bg': session?.status === 'ready',
-  'question-bg': session?.status === 'question'
+  'ready-bg': showCountdown || session?.status === 'pause',
+  'question-bg': session?.status === 'in-progress',
 }">
   <!-- Lorsque le statut est "waiting" -->
   <ng-container *ngIf="session?.status === 'waiting'">
@@ -71,13 +71,43 @@
   </ng-container>
 
   <!-- Lorsque le statut est "question" -->
-  <ng-container *ngIf="session?.status === 'question'">
+  <ng-container *ngIf="session?.status === 'in-progress'">
     <h1 class="status-heading">Question {{ round }}</h1>
-    <div class="countdown-container">
+
+    <!-- Affichage du compte à rebours -->
+    <div class="countdown-container" *ngIf="showCountdown">
       <div class="circle-spinner"></div>
       <div class="countdown-number">{{ countdown }}</div>
     </div>
-    <p class="status-message">Go!</p>
+
+    <!-- Affichage du bouton "Buzz" et du formulaire après la fin du compte à rebours -->
+    <ng-container *ngIf="!showCountdown">
+      <!-- Affichage du bouton "Buzz" si l'utilisateur n'a pas encore buzzé -->
+      <button class="buzz-button" (click)="buzz()" *ngIf="!hasBuzzed">Buzz</button>
+
+      <!-- Formulaire de réponse affiché après le buzz -->
+      <div class="answer-form" *ngIf="hasBuzzed">
+        <div class="form-group">
+          <label for="title">Title:</label>
+          <input id="title" [(ngModel)]="title" placeholder="Enter title">
+        </div>
+        <div class="form-group">
+          <label for="artist">Artist:</label>
+          <input id="artist" [(ngModel)]="artist" placeholder="Enter artist">
+        </div>
+        <div class="form-group form-submit">
+          <button (click)="submitAnswer(title, artist)" *ngIf="showSubmitButton">Submit</button>
+        </div>
+      </div>
+    </ng-container>
   </ng-container>
+
+  <ng-container *ngIf="session?.status === 'pause'">
+    <h1 class="status-heading">Pause</h1>
+    <div class="spinner"></div> <!-- Affichage d'un spinner infini -->
+  </ng-container>
+
+
+  
 </div>
 

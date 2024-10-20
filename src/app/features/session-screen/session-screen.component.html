@@ -11,6 +11,7 @@
         <h4 class="card-title"><fa-icon [icon]="faInfoCircle"></fa-icon> Session Information</h4>
         <h5>Nom de la Session: {{ session?.name }}</h5>
         <p><strong>Now Playing:</strong> {{ currentTrack?.title }} by {{ currentTrack?.artist }}</p>
+        <p><strong>Code PIN:</strong> {{session?.sessionCode}}</p>
         <p><strong>Etat de la Session:</strong> {{ session?.status }}</p>
         <p><strong>Temps:</strong> {{ session?.startTime }}</p>
       </div>

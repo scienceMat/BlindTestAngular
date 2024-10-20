@@ -11,6 +11,7 @@ import { SelectSessionComponent } from '../../shared/components/SelectSession/se
 import { Subscription, timer } from 'rxjs';
 import { Router } from '@angular/router';
 import { SpotifyService } from '@services/spotifyService.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-user',
@@ -22,7 +23,7 @@ import { SpotifyService } from '@services/spotifyService.service';
 })
 export class UserComponent implements OnInit, OnDestroy {
   userName: string = '';
-  selectedSessionId: number | null = null;
+  selectedSessionId: string | null = null;
   session: Session | null = null;
   hasBuzzed: boolean = false;
   title: string = '';
@@ -42,6 +43,7 @@ export class UserComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
   public isConnected = false;
   public messages: string[] = [];
+  private sessionCode: string | null = null;
 
   constructor(
     public userService: UserService,
@@ -49,61 +51,83 @@ export class UserComponent implements OnInit, OnDestroy {
     private webSocketService: WebSocketService,
     private authService: AuthService,
     private router: Router,
-    private spotifyService: SpotifyService
+    private spotifyService: SpotifyService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
-    // this.userId = this.authService.currentUserValue?.id;
-    // if (this.userId) {
-    //   this.checkSession();
-    // }
-    // this.loadSessions();
-    // this.webSocketService.connectSocket();
-    // this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
-// Simuler un utilisateur connecté
-    this.userId = 1; // User ID simulé
-    this.userName = 'John Doe'; // Nom d'utilisateur simulé
+    const guestUser = this.authService.getCurrentUserGuest();
+    if(guestUser){
+      this.userName = guestUser;
+    }
+    this.sessionCode = this.route.snapshot.paramMap.get('sessionCode');
+    if(this.sessionCode){
+      this.sessionService.getSessionByCode(this.sessionCode).subscribe((session: Session)=> {
+        this.selectedSessionId= session.id;
+      })
+    }
+  
+    if (this.sessionCode) {
+      // Appel à l'API pour récupérer la session via le code
+      this.sessionService.getSessionByCode(this.sessionCode).subscribe({
+        next: (session) => {
+          this.session = session;
+          console.log('Session récupérée:', this.session);
+        },
+        error: (err) => {
+          console.error('Erreur lors de la récupération de la session:', err);
+        }
+      });
+    } else {
+      console.error('Aucun code de session trouvé dans l\'URL');
+    }
 
-    // Simuler une liste de sessions
-    this.sessions = [
-      {
-        id: 1,
-        name: 'Session 1',
-        adminId: 1,
-        users: [
-          { id: 1, userName: 'John Doe', isAdmin: true, password:"mdp" },
-          { id: 2, userName: 'Jane Doe', isAdmin: false,password:"mdp" },
-        ],
-        musicList: [],
-        scores: { 1: 100, 2: 80 },
-        currentMusicIndex: 0,
-        status: 'in-progress',
-        startTime: new Date(),
-        endTime: new Date(new Date().getTime() + 3600000), // 1 heure après le début
-        questionStartTime: new Date(),
-      },
-      {
-        id: 2,
-        name: 'Session 2',
-        adminId: 2,
-        users: [{ id: 3, userName: 'Jim Beam', isAdmin: false,password:"mdp"  }],
-        musicList: [],
-        scores: { 3: 60 },
-        currentMusicIndex: 0,
-        status: 'question',
-        startTime: new Date(),
-        endTime: new Date(new Date().getTime() + 3600000),
-        questionStartTime: new Date(),
-      }
-    ];
+    this.webSocketService.connectSocket();
+    this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
+// Simuler un utilisateur connecté
+    // this.userId = 1; // User ID simulé
+    // this.userName = 'John Doe'; // Nom d'utilisateur simulé
+
+    // // Simuler une liste de sessions
+    // this.sessions = [
+    //   {
+    //     id: 1,
+    //     name: 'Session 1',
+    //     adminId: 1,
+    //     users: [
+    //       { id: 1, userName: 'John Doe', isAdmin: true, password:"mdp" },
+    //       { id: 2, userName: 'Jane Doe', isAdmin: false,password:"mdp" },
+    //     ],
+    //     musicList: [],
+    //     scores: { 1: 100, 2: 80 },
+    //     currentMusicIndex: 0,
+    //     status: 'in-progress',
+    //     startTime: new Date(),
+    //     endTime: new Date(new Date().getTime() + 3600000), // 1 heure après le début
+    //     questionStartTime: new Date(),
+    //   },
+    //   {
+    //     id: 2,
+    //     name: 'Session 2',
+    //     adminId: 2,
+    //     users: [{ id: 3, userName: 'Jim Beam', isAdmin: false,password:"mdp"  }],
+    //     musicList: [],
+    //     scores: { 3: 60 },
+    //     currentMusicIndex: 0,
+    //     status: 'question',
+    //     startTime: new Date(),
+    //     endTime: new Date(new Date().getTime() + 3600000),
+    //     questionStartTime: new Date(),
+    //   }
+    // ];
 
     // Simuler une session sélectionnée
-    this.selectedSessionId = this.sessions[0].id; // Session par défaut sélectionnée
-    this.session = this.sessions[1]; // Simuler que la première session est active
+    // this.selectedSessionId = this.sessions[0].id; // Session par défaut sélectionnée
+    // this.session = this.sessions[1]; // Simuler que la première session est active
 
-    // Simuler une connexion WebSocket fictive
-    this.webSocketService.connectSocket();
-    this.initializeWebSocketConnection(); // Initialiser avec la session simulée
+    // // Simuler une connexion WebSocket fictive
+    // this.webSocketService.connectSocket();
+    // this.initializeWebSocketConnection(); // Initialiser avec la session simulée
   }
 
   ngOnDestroy(): void {
@@ -111,33 +135,6 @@ export class UserComponent implements OnInit, OnDestroy {
     this.webSocketService.disconnectSocket(); // Déconnecter proprement du WebSocket
   }
 
-  loadSessions() {
-    this.sessionService.getAllSessions().subscribe((response) => {
-      this.sessions = response;
-    });
-  }
-
-  createUser() {
-    const user = { userName: this.userName };
-    this.userService.createUser(user).subscribe((response) => {
-      this.userService.setUserId(response.id);
-      this.userId = response.id;
-      console.log('User created:', response);
-    });
-  }
-
-  onSessionSelected(session: Session) {
-    this.selectedSessionId = session.id;
-    this.sessionService.setSession(session);
-    this.saveSessionConnection(session.id);
-    console.log('Selected session:', session);
-
-
-  }
-
-  private saveSessionConnection(sessionId: number) {
-    localStorage.setItem('connectedSessionId', sessionId.toString());
-  }
 
   leaveSession() {
     const sessionId = this.session?.id;
@@ -149,22 +146,6 @@ export class UserComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSessionJoined(session: Session) {
-    if (this.session?.id !== session.id) {
-      this.selectedSessionId = session.id;
-      this.session = session;
-      this.saveSessionConnection(session.id);
-
-      // Nettoyage des abonnements avant de changer de session
-      this.cleanupSubscriptions();
-      this.webSocketService.disconnectSocket(); // Déconnecter de l'ancienne session
-
-      this.initializeWebSocketConnection(); // Reconnecter avec la nouvelle session
-      console.log('Session joined:', session);
-    } else {
-      console.log('Already connected to this session');
-    }
-  }
 
   private cleanupSubscriptions(): void {
     if (this.subscription) {
@@ -180,20 +161,20 @@ export class UserComponent implements OnInit, OnDestroy {
   submitAnswer(title: string, artist: string) {
     if (this.session && this.session.id) {
       const answer = {
-        userId: this.userId,
+        userName: this.userName,  // Utiliser le nom de l'utilisateur
         title: title,
-        artist: artist,
+        artist: artist
       };
-
+  
       this.sessionService.submitAnswer(this.session.id, answer).subscribe(
         (response: any) => {
           console.log('Answer submitted', response);
-
+  
           // Récupérer les scores dans la session renvoyée
           if (response && response.scores) {
             this.updateScores(response.scores);
           }
-
+  
           this.showSubmitButton = false;
         },
         (error) => {
@@ -213,17 +194,6 @@ export class UserComponent implements OnInit, OnDestroy {
     console.log('Ranking updated:', this.ranking);
   }
 
-  checkSession() {
-    this.sessionService.getSessionByUser(this.userId!).subscribe((session) => {
-      if (session) {
-        this.session = session;
-        this.sessionService.setSession(session);
-        this.sessionStarted = this.session.status === 'in-progress';
-      }
-    });
-    this.initializeWebSocketConnection();
-
-  }
 
 
   private initializeWebSocketConnection(): void {
@@ -252,15 +222,21 @@ export class UserComponent implements OnInit, OnDestroy {
 
 startCountdown(time: number, nextMusic: boolean = false) {
   this.countdown = time;
+  this.showCountdown = true;
+  if(this.session){
+    this.session.status = 'in-progress';
+  }
   let interval = setInterval(() => {
     this.countdown--;
     if (this.countdown === 0) {
       clearInterval(interval);
-      this.sessionStarted = true;
+      this.sessionStarted = true;  // Active la session
       this.showSubmitButton = true;
       this.sessionPaused = false;
       this.showCountdown = false;
       this.hasBuzzed = false;
+     
+      // Mettre à jour le statut de la session après la fin du compte à rebours
 
       // Si l'action "NEXT_MUSIC" est demandée, on appelle nextTrack() à la fin du compte à rebours
       if (nextMusic) {
@@ -270,46 +246,75 @@ startCountdown(time: number, nextMusic: boolean = false) {
   }, 1000);
 }
 
-  handleWebSocketMessage(message: string): void {
-    console.log('Received WebSocket message:', message);
+handleWebSocketMessage(message: string): void {
+  console.log('Received WebSocket message:', message);
 
-    switch (message) {
-      case 'PAUSE_MUSIC':
+  switch (message) {
+    case 'PAUSE_MUSIC':
       this.pauseMusic();  // API Spotify pour mettre en pause la musique
       break;
 
-      case 'START_SESSION':
-        this.showCountdown = true;
-        this.startCountdown(10);
-        break;
+    case 'START_SESSION':
+      // Forcer la mise à jour du statut après réception du message
+      
+      this.startCountdown(10);  // Démarrer le compte à rebours de 10 secondes
+      break;
 
-      case 'END_OF_ROUND':
-        this.showRanking = true;
-        this.sessionPaused = true;
-        setTimeout(() => {
-          this.showRanking = false;
-          this.sessionPaused = false;
-          this.nextRound();  // Passer au round suivant après un délai
-        }, 5000); // Afficher les scores pendant 5 secondes avant de les masquer
-        break;
+    case 'END_OF_ROUND':
+      this.showRanking = true;
+      this.sessionPaused = true;
+      setTimeout(() => {
+        this.showRanking = false;
+        this.sessionPaused = false;
+        this.nextRound();  // Passer au round suivant après un délai
+      }, 5000); // Afficher les scores pendant 5 secondes avant de les masquer
+      break;
 
-      case 'NEXT_MUSIC':
-        this.round = this.round +1
-        this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
-        break;
+    case 'NEXT_MUSIC':
+      this.updateSessionStatus();  // Met à jour la session avant de jouer la musique suivante
+      this.round += 1;
+      this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
+      break;
 
-      case 'SESSION_FINISHED':
-        this.sessionStarted = false;
-        break;
+    case 'SESSION_FINISHED':
+      this.sessionStarted = false;
+      break;
 
-      case 'STOP_SESSION':
-        this.sessionStarted = false;
-        break;
+    case 'STOP_SESSION':
+      this.updateSessionStatus();  // Met à jour le statut pour la fin du round
+      this.sessionStarted = false;
+      break;
 
-      default:
-        this.handleScoreUpdates(message);
-    }
+    default:
+      this.handleScoreUpdates(message);
   }
+}
+
+updateSessionStatus(): void {
+  if (this.sessionCode) {
+    this.sessionService.getSessionByCode(this.sessionCode).subscribe({
+      next: (session: Session) => {
+        this.session = session;  // Met à jour la session avec les dernières informations
+
+        // Gérer le statut de la session ici
+        if (this.session.status === 'in-progress') {
+          this.sessionStarted = true;
+          this.sessionPaused = false;
+        } else if (this.session.status === 'pause') {
+          this.sessionPaused = true;
+        } else if (this.session.status === 'waiting') {
+          this.sessionStarted = false;
+          this.sessionPaused = false;
+        }
+
+        console.log('Session mise à jour:', this.session);
+      },
+      error: (err) => {
+        console.error('Erreur lors de la récupération de la session:', err);
+      }
+    });
+  }
+}
 
   pauseMusic(): void {
     this.spotifyService.pause().subscribe(() => {

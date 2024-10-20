@@ -12,6 +12,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { UserService } from '@services/user.service';
 import { LoginResponse } from '../../core/models/user.model';
 import { User,UserResponse } from '../../core/models/user.model';
+import { SessionService } from '@services/session.service';
 
 @Component({
   selector: 'app-auth',
@@ -22,24 +23,28 @@ import { User,UserResponse } from '../../core/models/user.model';
 })
 export class AuthComponent {
   userName: string = '';
+  userGuestName: string = '';
+  sessionCode: string = '';
   password: string = '';
   isAdmin: boolean = false;
   activeIndex: number = 0;
 
-  constructor(private authService: AuthService, private router: Router, private userService: UserService) {}
+  constructor(private authService: AuthService,
+     private router: Router,
+      private userService: UserService, private sessionService: SessionService) {}
 
   stateOptions = [
     { label: 'User', value: false },
     { label: 'Admin', value: true }
   ];
 
-  login() {
+  loginAsAdmin() {
     this.authService.login(this.userName, this.password).subscribe({
       next: (response: UserResponse) => {
         const user: User = {
           id: response.id,
           userName: response.username,
-          password: '', // Ne pas stocker le mot de passe
+          password: '',
           isAdmin: response.admin
         };
   
@@ -47,22 +52,47 @@ export class AuthComponent {
         this.authService.setTokenInLocalStorage(response.token);
         this.authService.setCurrentUser(user);
   
-        console.log("User ID:", user.id);
         if (user.isAdmin) {
           this.router.navigate(['/admin']);
         } else {
-          this.router.navigate(['/users']);
+          console.error('This user is not an admin');
         }
       },
-      error: (err: any) => {
-        console.error('Error during login:', err);
+      error: (err) => {
+        console.error('Error during admin login:', err);
       }
     });
   }
 
-  createUser() {
-    this.authService.createUser({ userName: this.userName, password: this.password, isAdmin: this.isAdmin }).subscribe(user => {
-      alert('User created successfully!');
+  joinSessionAsUser() {
+    if (!this.userGuestName || !this.sessionCode) {
+      console.error('Pseudo or Session Code is missing');
+      return;
+    }
+  
+    // Appeler directement la méthode joinSessionAsGuest avec le pseudo et le code de session
+    this.sessionService.joinSessionAsGuest(this.sessionCode, this.userGuestName).subscribe({
+      next: (session) => { 
+        // Stocker l'ID de session et le code de session
+        this.sessionService.setSessionCode(this.sessionCode);
+        this.authService.setCurrentUserGuest(this.userGuestName);
+        // Rediriger l'utilisateur vers l'écran de la session
+        this.router.navigate(['/users', this.sessionCode]);
+      },
+      error: (err) => {
+        console.error('Error joining session:', err);
+      }
+    });
+  }
+
+  createAdmin() {
+    this.authService.createUser({ userName: this.userName, password: this.password, isAdmin: true }).subscribe({
+      next: () => {
+        alert('Admin created successfully!');
+      },
+      error: (err) => {
+        console.error('Error during admin creation:', err);
+      }
     });
   }
 }

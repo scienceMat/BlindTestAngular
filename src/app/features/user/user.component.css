@@ -176,3 +176,51 @@ li {
   width: 120px;
   height: 120px;
 }
+
+
+.answer-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 300px;
+  margin: 0 auto; /* Centrer horizontalement */
+}
+
+
+.form-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+
+label {
+  flex-basis: 40%;
+  text-align: left;
+}
+
+input {
+  flex-basis: 60%;
+}
+
+button {
+  width: 100%; /* Prendre toute la largeur */
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.form-submit {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}

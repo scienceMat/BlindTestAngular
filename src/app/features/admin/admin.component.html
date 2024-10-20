@@ -1,17 +1,30 @@
 <div class="admin-container">
-  <h2>Create Session</h2>
-  <div class="p-fluid form-container">
-    <app-input-text [(ngModel)]="sessionName" type="text" placeholder="Session Name"></app-input-text>
-    <button (click)="createSession()" class="btn-shared btn-primary mb-3.5">Create Session</button>
+  <div class="admin-header">
+    <h2>Admin Dashboard</h2>
+    <div class="nav-bar">
+      <button (click)="navigateToBlindTests()" [class.active]="activeTab === 'blind-tests'">Blind Tests</button>
+      <button (click)="navigateToCreateBlindTest()" [class.active]="activeTab === 'create-blind-test'">Créer un Blind Test</button>
+    </div>
   </div>
 
-  <app-select-session 
-    [sessions]="sessions" 
-    (sessionSelected)="onSessionSelected($event)">
-  </app-select-session>
-  
-  <button (click)="logout()">Logout</button>
+  <!-- Zone pour afficher le contenu en fonction de l'onglet actif -->
+  <div class="content">
+    <ng-container *ngIf="activeTab === 'blind-tests'">
+      <h3>Mes Blind Tests</h3>
+      <div *ngFor="let blindTest of sessions" class="blindtest-item">
+        {{ blindTest.name }} - <button (click)="openBlindTest(blindTest.id)">Ouvrir</button>
+      </div>
+      <button (click)="navigateToCreateBlindTest()">+ Ajouter un Blind Test</button>
+    </ng-container>
 
+    <ng-container *ngIf="activeTab === 'create-blind-test'">
+      <h3>Créer un Blind Test</h3>
+      <div class="p-fluid form-container">
+        <app-input-text [(ngModel)]="sessionName" type="text" placeholder="Nom du Blind Test"></app-input-text>
+        <button (click)="createSession()" class="btn-shared btn-primary mb-3.5">Créer</button>
+      </div>
+    </ng-container>
+  </div>
 
-  <router-outlet></router-outlet>
+  <button (click)="logout()" class="logout-btn">Logout</button>
 </div>

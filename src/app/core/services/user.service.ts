@@ -26,6 +26,14 @@ export class UserService {
     }
   }
 
+  // Trouver ou créer un utilisateur simple basé sur son pseudo
+  public findOrCreateUser(user: { userName: string, password:string, isAdmin: boolean }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/create`, user);
+  }
+
+
+  
+
   public getUserId(): number | null {
     if (this.userId === null) {
       const storedId = localStorage.getItem('userId');

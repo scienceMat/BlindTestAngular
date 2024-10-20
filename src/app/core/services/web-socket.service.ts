@@ -51,7 +51,7 @@ export class WebSocketService {
    * @param sessionId Session ID to subscribe to
    * @returns Observable for the messages from the subscribed session
    */
-  public subscribeToSession(sessionId: number): Observable<string> {
+  public subscribeToSession(sessionId: string): Observable<string> {
     return new Observable((subscriber) => {
       if (!this.isConnected$.getValue()) {
         console.error('Cannot subscribe, WebSocket is not connected.');
