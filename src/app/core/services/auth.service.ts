@@ -23,7 +23,7 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {
     const storedUser = localStorage.getItem(this.USER_KEY);
-    const storedGuestUser = localStorage.getItem('guest-user'); // Stockage pour l'utilisateur invité
+    const storedGuestUser = sessionStorage.getItem('guest-user'); // Stockage pour l'utilisateur invité
 
     this.currentUserSubject = new BehaviorSubject<User | null>(storedUser ? JSON.parse(storedUser) : null);
     this.currentUserGuestSubject = new BehaviorSubject<string | null>(storedGuestUser ? storedGuestUser : null);
@@ -89,7 +89,7 @@ export class AuthService {
   }
 
   public setCurrentUserGuest(username: string): void {
-    localStorage.setItem('guest-user', username);
+    sessionStorage.setItem('guest-user', username);
     this.currentUserGuestSubject.next(username);
   }
 
@@ -103,7 +103,7 @@ export class AuthService {
   }
 
   public getCurrentUserGuest(): string | null {
-    const username = localStorage.getItem('guest-user');
+    const username = sessionStorage.getItem('guest-user');
     return username;
   }
 

@@ -205,7 +205,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
           this.showSubmitButton = true;
         }, 5000);
         break;
-      case 'NEXT_MUSIC':
+      case 'NEXT_ROUND':
         this.sessionStarted = true;
         this.sessionPaused = false;
         this.hasBuzzed = false;
@@ -269,7 +269,7 @@ export class SessionScreenComponent implements OnInit, OnDestroy {
           return;
         }
 
-        const nextTrack = this.playlist[currentMusicIndex];
+        const currentTrack = this.playlist[currentMusicIndex];
 
       }, error => {
         console.error('Error retrieving current music index:', error);

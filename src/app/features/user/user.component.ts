@@ -44,6 +44,7 @@ export class UserComponent implements OnInit, OnDestroy {
   public isConnected = false;
   public messages: string[] = [];
   private sessionCode: string | null = null;
+  protected userScores: User[] = [];
 
   constructor(
     public userService: UserService,
@@ -176,6 +177,7 @@ export class UserComponent implements OnInit, OnDestroy {
           }
   
           this.showSubmitButton = false;
+          this.hasBuzzed = true;
         },
         (error) => {
           console.error('Error submitting answer', error);
@@ -256,37 +258,58 @@ handleWebSocketMessage(message: string): void {
 
     case 'START_SESSION':
       // Forcer la mise à jour du statut après réception du message
-      
+      this.showRanking = false;
       this.startCountdown(10);  // Démarrer le compte à rebours de 10 secondes
       break;
 
     case 'END_OF_ROUND':
       this.showRanking = true;
       this.sessionPaused = true;
+      this.showCountdown = false;
+      this.loadSessionScores();  // Charger les scores
       setTimeout(() => {
         this.showRanking = false;
         this.sessionPaused = false;
+        this.showCountdown = true;
         this.nextRound();  // Passer au round suivant après un délai
       }, 5000); // Afficher les scores pendant 5 secondes avant de les masquer
       break;
 
-    case 'NEXT_MUSIC':
+    case 'NEXT_ROUND':
       this.updateSessionStatus();  // Met à jour la session avant de jouer la musique suivante
-      this.round += 1;
+     
       this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
       break;
 
     case 'SESSION_FINISHED':
+      this.showRanking = true;
       this.sessionStarted = false;
+      this.loadSessionScores();  // Charger les scores
+
       break;
 
     case 'STOP_SESSION':
+      this.showRanking = true;
       this.updateSessionStatus();  // Met à jour le statut pour la fin du round
       this.sessionStarted = false;
+      this.loadSessionScores();  // Charger les scores
+
       break;
 
     default:
       this.handleScoreUpdates(message);
+  }
+}
+
+loadSessionScores(): void {
+  const sessionId = this.session?.id;
+  if (sessionId) {
+    this.sessionService.getSessionScores(sessionId).subscribe((scores: User[]) => {
+      this.userScores = scores.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    }, error => {
+      console.error('Error loading session scores', error);
+    });
   }
 }
 
@@ -295,7 +318,9 @@ updateSessionStatus(): void {
     this.sessionService.getSessionByCode(this.sessionCode).subscribe({
       next: (session: Session) => {
         this.session = session;  // Met à jour la session avec les dernières informations
-
+        if(this.session?.round){
+          this.round = this.session?.round;
+        }
         // Gérer le statut de la session ici
         if (this.session.status === 'in-progress') {
           this.sessionStarted = true;

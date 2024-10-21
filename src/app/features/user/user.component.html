@@ -102,10 +102,23 @@
     </ng-container>
   </ng-container>
 
-  <ng-container *ngIf="session?.status === 'pause'">
+  <ng-container *ngIf="session?.status === 'pause' || sessionPaused">
     <h1 class="status-heading">Pause</h1>
     <div class="spinner"></div> <!-- Affichage d'un spinner infini -->
+  
+    <!-- Afficher les scores pendant la pause si showRanking est vrai -->
+    <ng-container *ngIf="showRanking">
+      <div class="scoreboard-container">
+        <h1>Scoreboard</h1>
+        <div *ngFor="let user of userScores" class="score-row">
+          <span class="user-name">{{ user.userName }}</span>
+          <span class="user-score">{{ user.score }}</span>
+        </div>
+      </div>
+    </ng-container>
   </ng-container>
+
+  
 
 
   

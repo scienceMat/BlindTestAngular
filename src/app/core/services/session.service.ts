@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {Session} from '../models/session.model';
+import { User } from '../../core/models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,9 +24,9 @@ export class SessionService {
     return this.http.get(this.apiUrl);
   }
   
-  public getSessionScores(sessionId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${sessionId}/scores`);
-  }
+  public getSessionScores(sessionId: string): Observable<User[]> {
+  return this.http.get<User[]>(`${this.apiUrl}/${sessionId}/scores`);
+}
 
   public getSessionByCode(sessionCode: string): Observable<Session> {
     return this.http.get<Session>(`${this.apiUrl}/code/${sessionCode}`);
@@ -46,13 +47,13 @@ public joinSessionAsGuest(sessionCode: string, pseudo: string): Observable<any> 
 public joinAsGuest(user: { userName: string, password:string, isAdmin: boolean }): Observable<any> {
   return this.http.post(`${this.apiUrl}/join-as-guest`, user);
 }
- // Stocker le code de session dans localStorage
+ // Stocker le code de session dans sessionStorage
  public setSessionCode(code: string | null) {
   this.sessionCode = code;
   if (code !== null) {
-    localStorage.setItem('sessionCode', code);
+    sessionStorage.setItem('sessionCode', code);
   } else {
-    localStorage.removeItem('sessionCode');
+    sessionStorage.removeItem('sessionCode');
   }
 }
 
@@ -132,7 +133,7 @@ public joinAsGuest(user: { userName: string, password:string, isAdmin: boolean }
   }
 
   public getSessionCode(): string | null {
-    return localStorage.getItem('sessionCode');
+    return sessionStorage.getItem('sessionCode');
   }
   
 

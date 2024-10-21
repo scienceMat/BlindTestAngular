@@ -14,6 +14,7 @@ export interface Session {
   questionStartTime: Date;
   currentMusic?: TrackDTO;
   sessionCode: string;
+  round:number;
 }
   
   
