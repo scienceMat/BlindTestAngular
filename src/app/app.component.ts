@@ -47,7 +47,7 @@ export class AppComponent implements OnInit {
     this.subscription.add(
       this.authService.currentUserGuestSubject.subscribe(guest => {
         if (guest) {
-          this.userName = guest; // Met à jour le nom d'utilisateur invité
+          this.userName = guest.username; // Met à jour le nom d'utilisateur invité
           this.isAdmin = false; // Un invité n'est pas admin
         }
       })

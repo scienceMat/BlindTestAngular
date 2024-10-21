@@ -86,7 +86,7 @@
       <button class="buzz-button" (click)="buzz()" *ngIf="!hasBuzzed">Buzz</button>
 
       <!-- Formulaire de réponse affiché après le buzz -->
-      <div class="answer-form" *ngIf="!hasBuzzed">
+      <div class="answer-form" *ngIf="hasBuzzed && showSubmitButton">
         <div class="form-group">
           <label for="title">Title:</label>
           <input id="title" [(ngModel)]="title" placeholder="Enter title">
@@ -96,7 +96,7 @@
           <input id="artist" [(ngModel)]="artist" placeholder="Enter artist">
         </div>
         <div class="form-group form-submit">
-          <button (click)="submitAnswer(title, artist)" *ngIf="showSubmitButton">Submit</button>
+          <button (click)="submitAnswer(title, artist)" >Submit</button>
         </div>
       </div>
     </ng-container>

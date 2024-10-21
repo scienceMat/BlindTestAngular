@@ -11,7 +11,7 @@ import {Router} from '@angular/router';
 export class AuthService {
   private readonly apiUrl = 'http://localhost:8080/users';
   public currentUserSubject: BehaviorSubject<User | null>;
-  public currentUserGuestSubject: BehaviorSubject<string | null>;
+  public currentUserGuestSubject: BehaviorSubject<{ username: string; sessionToken: string } | null>;
 
 
   public currentUser: Observable<User | null>;
@@ -23,10 +23,18 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {
     const storedUser = localStorage.getItem(this.USER_KEY);
-    const storedGuestUser = sessionStorage.getItem('guest-user'); // Stockage pour l'utilisateur invité
+    const storedGuestUser = sessionStorage.getItem('guest-user');
+    let parsedGuestUser = null;
 
+    if (storedGuestUser) {
+      try {
+        parsedGuestUser = JSON.parse(storedGuestUser);
+      } catch (e) {
+        console.error('Invalid guest user data in sessionStorage', e);
+      }
+    }
     this.currentUserSubject = new BehaviorSubject<User | null>(storedUser ? JSON.parse(storedUser) : null);
-    this.currentUserGuestSubject = new BehaviorSubject<string | null>(storedGuestUser ? storedGuestUser : null);
+    this.currentUserGuestSubject = new BehaviorSubject<{ username: string, sessionToken: string } | null>(parsedGuestUser ? parsedGuestUser : null);
 
     this.currentUser = this.currentUserSubject.asObservable();
     this.checkSessionExpiry();
@@ -88,9 +96,10 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  public setCurrentUserGuest(username: string): void {
-    sessionStorage.setItem('guest-user', username);
-    this.currentUserGuestSubject.next(username);
+  public setCurrentUserGuest(username: string, sessionToken: string): void {
+    const guestUser = { username, sessionToken };
+    sessionStorage.setItem('guest-user', JSON.stringify(guestUser));
+    this.currentUserGuestSubject.next(guestUser);  // Mettre à jour le BehaviorSubject
   }
 
   public getToken(): string | null {
@@ -98,9 +107,9 @@ export class AuthService {
   }
 
 
-  public getCurrentUserGuest(): string | null {
-    const username = sessionStorage.getItem('guest-user');
-    return username;
+  public getCurrentUserGuest(): { username: string, sessionToken: string } | null {
+    const storedGuest = sessionStorage.getItem('guest-user');
+    return storedGuest ? JSON.parse(storedGuest) : null;
   }
 
   public logout() {

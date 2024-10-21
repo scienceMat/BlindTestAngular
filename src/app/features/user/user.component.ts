@@ -59,7 +59,7 @@ export class UserComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const guestUser = this.authService.getCurrentUserGuest();
     if(guestUser){
-      this.userName = guestUser;
+      this.userName = guestUser.username;
     }
     this.sessionCode = this.route.snapshot.paramMap.get('sessionCode');
     if(this.sessionCode){

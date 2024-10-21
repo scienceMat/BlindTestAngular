@@ -64,13 +64,25 @@ export class AuthComponent {
       console.error('Pseudo or Session Code is missing');
       return;
     }
-
-    // Appeler directement la méthode joinSessionAsGuest avec le pseudo et le code de session
-    this.sessionService.joinSessionAsGuest(this.sessionCode, this.userGuestName).subscribe({
+  
+    // Vérifier si un utilisateur avec le même pseudo est déjà connecté
+    const existingGuest = this.authService.getCurrentUserGuest();
+    
+    // Si le même pseudo est trouvé et que le token correspond, on reconnecte
+    if (existingGuest && existingGuest.username === this.userGuestName) {
+      console.log('User already connected as guest:', existingGuest);
+      this.router.navigate(['/users', this.sessionCode]); // Reconnexion à la session
+      return;
+    }
+  
+    // Appeler la méthode joinSessionAsGuest avec le pseudo, le code de session et un token généré
+    const sessionToken = this.generateSessionToken();  // Générer un token unique pour cet utilisateur invité
+    this.sessionService.joinSessionAsGuest(this.sessionCode, { userName: this.userGuestName, sessionToken }).subscribe({
       next: (session) => {
-        // Stocker l'ID de session et le code de session
+        // Stocker le pseudo et le token dans le sessionStorage
+        this.authService.setCurrentUserGuest(this.userGuestName, sessionToken);
         this.sessionService.setSessionCode(this.sessionCode);
-        this.authService.setCurrentUserGuest(this.userGuestName);
+        
         // Rediriger l'utilisateur vers l'écran de la session
         this.router.navigate(['/users', this.sessionCode]);
       },
@@ -78,6 +90,10 @@ export class AuthComponent {
         console.error('Error joining session:', err);
       }
     });
+  }
+
+  private generateSessionToken(): string {
+    return Math.random().toString(36).substr(2);  // Simple token unique
   }
 
   createAdmin() {

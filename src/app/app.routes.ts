@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { AuthComponent } from './features/auth/auth.component';
 import { AdminComponent } from './features/admin/admin.component';
-import { SessionComponent } from './features/session/session.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 import { LecteurComponent } from './features/lecteur/lecteur.component';
@@ -16,7 +15,6 @@ export const routes: Routes = [
   { path: 'login', component: AuthComponent },
   { path: 'loginSpotify', component: LoginSpotifyComponent},
   { path: 'admin', component: AdminComponent, canActivate: [AdminGuard]},
-  { path: 'sessions', component: SessionComponent, canActivate: [AuthGuard] },
   { path: 'users/:sessionCode', component: UserComponent },
   { path: 'callback', component: CallbackComponent },
   { path: 'session-screen/:id', component: SessionScreenComponent, canActivate: [AdminGuard] }, // Add this route

@@ -11,7 +11,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserService } from '../../core/services/user.service';
 import { LoginButton } from '../../shared/components/LoginButton/login-button.component';
-import { DisplayPlaylistComponent } from '../admin/components/display-playlist/display-playlist.component';
 import { InputTextComponent } from '../../shared/components/input/input.component';
 import { PlaylistService } from '../../core/services/utils/playlistService';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -28,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
     FormsModule,
     RouterModule,
     LoginButton,
-    DisplayPlaylistComponent,
+  
     InputTextComponent,
     FontAwesomeModule
   ],

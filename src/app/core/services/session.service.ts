@@ -38,28 +38,24 @@ export class SessionService {
 
   public joinSessionByCode(sessionCode: string, userId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionCode}/join`, { id: userId });
-}
-
-public joinSessionAsGuest(sessionCode: string, pseudo: string): Observable<any> {
-  return this.http.post(`${this.apiUrl}/${sessionCode}/join-as-guest`, pseudo);
-}
-
-public joinAsGuest(user: { userName: string, password:string, isAdmin: boolean }): Observable<any> {
-  return this.http.post(`${this.apiUrl}/join-as-guest`, user);
-}
- // Stocker le code de session dans sessionStorage
- public setSessionCode(code: string | null) {
-  this.sessionCode = code;
-  if (code !== null) {
-    sessionStorage.setItem('sessionCode', code);
-  } else {
-    sessionStorage.removeItem('sessionCode');
   }
+
+  public joinSessionAsGuest(sessionCode: string, joinRequest: { userName: string, sessionToken: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${sessionCode}/join-as-guest`, joinRequest);
 }
+
+  public setSessionCode(code: string | null) {
+    this.sessionCode = code;
+    if (code !== null) {
+      sessionStorage.setItem('sessionCode', code);
+    } else {
+      sessionStorage.removeItem('sessionCode');
+    }
+  }
 
   public leaveSession(sessionId: string, userId: number): Observable<Session> {
-    return this.http.post<Session>(`${this.apiUrl}/${sessionId}/leave`, { id: userId });
-}
+      return this.http.post<Session>(`${this.apiUrl}/${sessionId}/leave`, { id: userId });
+  }
 
   public startSession(sessionId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/${sessionId}/start`, {});
