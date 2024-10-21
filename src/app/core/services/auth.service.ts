@@ -13,7 +13,7 @@ export class AuthService {
   public currentUserSubject: BehaviorSubject<User | null>;
   public currentUserGuestSubject: BehaviorSubject<string | null>;
 
-  
+
   public currentUser: Observable<User | null>;
   public readonly USER_KEY = 'auth-user';
   public readonly TOKEN_KEY = 'auth-token';
@@ -36,7 +36,7 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
- 
+
   public createUser(user: { userName: string, password: string, isAdmin: boolean }): Observable<any> {
     return this.http.post(`${this.apiUrl}/create`, user);
   }
@@ -76,12 +76,12 @@ export class AuthService {
     window.location.href = authUrl;
   }
 
-  public setUserInLocalStorage(user: User) {
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+  public setUserInSessionStorage(user: User) {
+    sessionStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
-  public setTokenInLocalStorage(token: string) {
-    localStorage.setItem(this.TOKEN_KEY, token);
+  public setTokenInSessionStorage(token: string) {
+    sessionStorage.setItem(this.TOKEN_KEY, token);
   }
 
   public setCurrentUser(user: User): void {
@@ -94,13 +94,9 @@ export class AuthService {
   }
 
   public getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
-  public getCurrentUser(): User | null {
-    const user = localStorage.getItem(this.USER_KEY);
-    return user ? JSON.parse(user) : null;
-  }
 
   public getCurrentUserGuest(): string | null {
     const username = sessionStorage.getItem('guest-user');
@@ -108,10 +104,10 @@ export class AuthService {
   }
 
   public logout() {
-    localStorage.removeItem(this.USER_KEY);
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.EXPIRY_KEY);
-    localStorage.removeItem(this.SPOTIFY_TOKEN_KEY);
+    sessionStorage.removeItem(this.USER_KEY);
+    sessionStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.EXPIRY_KEY);
+    sessionStorage.removeItem(this.SPOTIFY_TOKEN_KEY);
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }

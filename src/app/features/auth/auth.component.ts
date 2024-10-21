@@ -33,11 +33,6 @@ export class AuthComponent {
      private router: Router,
       private userService: UserService, private sessionService: SessionService) {}
 
-  stateOptions = [
-    { label: 'User', value: false },
-    { label: 'Admin', value: true }
-  ];
-
   loginAsAdmin() {
     this.authService.login(this.userName, this.password).subscribe({
       next: (response: UserResponse) => {
@@ -47,11 +42,11 @@ export class AuthComponent {
           password: '',
           isAdmin: response.admin
         };
-  
-        this.authService.setUserInLocalStorage(user);
-        this.authService.setTokenInLocalStorage(response.token);
+
+        this.authService.setUserInSessionStorage(user);
+        this.authService.setTokenInSessionStorage(response.token);
         this.authService.setCurrentUser(user);
-  
+
         if (user.isAdmin) {
           this.router.navigate(['/admin']);
         } else {
@@ -69,10 +64,10 @@ export class AuthComponent {
       console.error('Pseudo or Session Code is missing');
       return;
     }
-  
+
     // Appeler directement la méthode joinSessionAsGuest avec le pseudo et le code de session
     this.sessionService.joinSessionAsGuest(this.sessionCode, this.userGuestName).subscribe({
-      next: (session) => { 
+      next: (session) => {
         // Stocker l'ID de session et le code de session
         this.sessionService.setSessionCode(this.sessionCode);
         this.authService.setCurrentUserGuest(this.userGuestName);
