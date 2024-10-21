@@ -56,12 +56,12 @@ export class AppComponent implements OnInit {
     // Récupère le sessionCode depuis le SessionService
     this.sessionCode = this.sessionService.getSessionCode(); // Session stockée dans localStorage ou par session
 
-    // Si le sessionCode est absent, tente de le charger depuis localStorage
+    // Si le sessionCode est absent, tente de le charger depuis sessionStorage
     if (!this.sessionCode) {
       this.sessionCode = sessionStorage.getItem('sessionCode');
     }
 
-    // Stocke le sessionCode dans le localStorage pour persistance
+    // Stocke le sessionCode dans le sessionStorage pour persistance
     if (this.sessionCode) {
       this.sessionService.setSessionCode(this.sessionCode);
     }

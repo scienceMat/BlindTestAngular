@@ -86,7 +86,7 @@
       <button class="buzz-button" (click)="buzz()" *ngIf="!hasBuzzed">Buzz</button>
 
       <!-- Formulaire de réponse affiché après le buzz -->
-      <div class="answer-form" *ngIf="hasBuzzed">
+      <div class="answer-form" *ngIf="!hasBuzzed">
         <div class="form-group">
           <label for="title">Title:</label>
           <input id="title" [(ngModel)]="title" placeholder="Enter title">
@@ -105,11 +105,11 @@
   <ng-container *ngIf="session?.status === 'pause' || sessionPaused">
     <h1 class="status-heading">Pause</h1>
     <div class="spinner"></div> <!-- Affichage d'un spinner infini -->
-  
+
     <!-- Afficher les scores pendant la pause si showRanking est vrai -->
     <ng-container *ngIf="showRanking">
       <div class="scoreboard-container">
-        <h1>Scoreboard</h1>
+        <h1>Tableau des scores</h1>
         <div *ngFor="let user of userScores" class="score-row">
           <span class="user-name">{{ user.userName }}</span>
           <span class="user-score">{{ user.score }}</span>
@@ -118,9 +118,9 @@
     </ng-container>
   </ng-container>
 
-  
 
 
-  
+
+
 </div>
 

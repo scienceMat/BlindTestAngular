@@ -67,7 +67,7 @@ export class UserComponent implements OnInit, OnDestroy {
         this.selectedSessionId= session.id;
       })
     }
-  
+
     if (this.sessionCode) {
       // Appel à l'API pour récupérer la session via le code
       this.sessionService.getSessionByCode(this.sessionCode).subscribe({
@@ -166,16 +166,16 @@ export class UserComponent implements OnInit, OnDestroy {
         title: title,
         artist: artist
       };
-  
+
       this.sessionService.submitAnswer(this.session.id, answer).subscribe(
         (response: any) => {
           console.log('Answer submitted', response);
-  
+
           // Récupérer les scores dans la session renvoyée
           if (response && response.scores) {
             this.updateScores(response.scores);
           }
-  
+
           this.showSubmitButton = false;
           this.hasBuzzed = true;
         },
@@ -237,7 +237,7 @@ startCountdown(time: number, nextMusic: boolean = false) {
       this.sessionPaused = false;
       this.showCountdown = false;
       this.hasBuzzed = false;
-     
+
       // Mettre à jour le statut de la session après la fin du compte à rebours
 
       // Si l'action "NEXT_MUSIC" est demandée, on appelle nextTrack() à la fin du compte à rebours
@@ -277,7 +277,6 @@ handleWebSocketMessage(message: string): void {
 
     case 'NEXT_ROUND':
       this.updateSessionStatus();  // Met à jour la session avant de jouer la musique suivante
-     
       this.startCountdown(10, true);  // Lancer un compte à rebours et jouer la musique suivante à la fin
       break;
 
@@ -285,7 +284,6 @@ handleWebSocketMessage(message: string): void {
       this.showRanking = true;
       this.sessionStarted = false;
       this.loadSessionScores();  // Charger les scores
-
       break;
 
     case 'STOP_SESSION':
