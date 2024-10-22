@@ -1,5 +1,5 @@
 import { Component,OnInit  } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import {Router, RouterModule} from '@angular/router';
 
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { HeaderComponent } from './shared/components/header/header.component';
@@ -18,14 +18,17 @@ import { Subscription } from 'rxjs';
   imports: [RouterModule, FooterComponent, HeaderComponent, HeaderUserComponent, FooterUserComponent,CommonModule]
 })
 export class AppComponent implements OnInit {
-  title = 'BlindTestAngular';
-  isAdmin: boolean = false;
-  sessionCode: string | null = null; // Utilise sessionCode à la place de sessionId
-  userName: string = '';  // Nom d'utilisateur
+  protected title = 'BlindTestAngular';
+  protected isAdmin: boolean = false;
+  protected isLoginRoute: boolean = false;
+
+  protected sessionCode: string | null = null; // Utilise sessionCode à la place de sessionId
+  protected userName: string = '';  // Nom d'utilisateur
   private subscription: Subscription = new Subscription(); // Pour gérer les abonnements
 
   constructor(
     private authService: AuthService,
+    private router: Router,
     private sessionService: SessionService // Injecte le service Session
   ) {}
 
@@ -65,12 +68,13 @@ export class AppComponent implements OnInit {
     if (this.sessionCode) {
       this.sessionService.setSessionCode(this.sessionCode);
     }
+
+    this.router.events.subscribe((event: any) => {
+      if (event.url) {
+        // Met à jour l'état de la variable pour cacher/afficher le header et footer
+        this.isLoginRoute = event.url === '/login';
+      }
+    });
   }
 
-  ngOnDestroy(): void {
-    // Se désabonner lors de la destruction du composant
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-  }
 }

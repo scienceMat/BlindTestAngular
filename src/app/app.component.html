@@ -1,9 +1,8 @@
-<!-- Appliquer le *ngIf directement sur les composants -->
-<app-header-user *ngIf="!isAdmin && sessionCode" [sessionId]="sessionCode"></app-header-user>
-<app-header *ngIf="isAdmin"></app-header>
+<!-- Affiche les headers et footers uniquement si la route active n'est pas 'login' -->
+<app-header-user *ngIf="!isAdmin && sessionCode && !isLoginRoute" [sessionId]="sessionCode"></app-header-user>
+<app-header *ngIf="isAdmin && !isLoginRoute"></app-header>
 
 <router-outlet></router-outlet>
 
-<!-- Appliquer le *ngIf directement sur les composants -->
-<app-footer-user *ngIf="!isAdmin && userName" [userName]="userName"></app-footer-user>
-<app-footer *ngIf="isAdmin"></app-footer>
+<app-footer-user *ngIf="!isAdmin && userName && !isLoginRoute" [userName]="userName"></app-footer-user>
+<app-footer *ngIf="isAdmin && !isLoginRoute"></app-footer>
