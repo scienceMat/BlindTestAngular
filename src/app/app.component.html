@@ -1,8 +1,14 @@
-<!-- Affiche les headers et footers uniquement si la route active n'est pas 'login' -->
-<app-header-user *ngIf="!isAdmin && sessionCode && !isLoginRoute" [sessionId]="sessionCode"></app-header-user>
-<app-header *ngIf="isAdmin && !isLoginRoute"></app-header>
+<!-- Affiche le HeaderUser si sessionCode est présent et l'utilisateur n'est pas admin -->
+<app-header-user *ngIf="sessionCode && !isAdmin"></app-header-user>
 
+<!-- Affiche le Header standard dans tous les autres cas (si l'utilisateur n'est pas connecté ou est admin) -->
+<app-header *ngIf="!sessionCode"></app-header>
+
+<!-- Router outlet pour gérer les routes -->
 <router-outlet></router-outlet>
 
-<app-footer-user *ngIf="!isAdmin && userName && !isLoginRoute" [userName]="userName"></app-footer-user>
-<app-footer *ngIf="isAdmin && !isLoginRoute"></app-footer>
+<!-- Affiche le FooterUser si l'utilisateur est invité -->
+<app-footer-user *ngIf="!isAdmin && sessionCode"></app-footer-user>
+
+<!-- Affiche le Footer standard si l'utilisateur est admin -->
+<app-footer *ngIf="isAdmin"></app-footer>

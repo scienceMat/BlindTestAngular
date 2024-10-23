@@ -1,23 +1,21 @@
-import { Routes } from '@angular/router';
-import { AuthComponent } from './features/auth/auth.component';
-import { AdminComponent } from './features/admin/admin.component';
-import { AuthGuard } from './core/guards/auth.guard';
-import { AdminGuard } from './core/guards/admin.guard';
-import { LecteurComponent } from './features/lecteur/lecteur.component';
-import { UserComponent } from './features/user/user.component';
-import { musicResolver } from '../../src/app/core/resolvers/musicResolver';
-import { LoginSpotifyComponent } from './login-spotify/login-spotify.component';
-import { SessionScreenComponent } from './features/session-screen/session-screen.component';
-import { CallbackComponent } from './features/callback/callback.component';
+import {Routes} from '@angular/router';
+import {AuthComponent} from './features/auth/auth.component';
+import {AdminComponent} from './features/admin/admin.component';
+import {AdminGuard} from './core/guards/admin.guard';
+import {UserComponent} from './features/user/user.component';
+import {LoginSpotifyComponent} from './login-spotify/login-spotify.component';
+import {SessionScreenComponent} from './features/session-screen/session-screen.component';
+import {CallbackComponent} from './features/callback/callback.component';
+import {JoinSessionComponent} from './features/join-session/join-session.component';
 
 export const routes: Routes = [
-  { path: '',  redirectTo: 'login', pathMatch: 'full'  },
-  { path: 'login', component: AuthComponent },
-  { path: 'loginSpotify', component: LoginSpotifyComponent},
-  { path: 'admin', component: AdminComponent, canActivate: [AdminGuard]},
-  { path: 'users/:sessionCode', component: UserComponent },
-  { path: 'callback', component: CallbackComponent },
-  { path: 'session-screen/:id', component: SessionScreenComponent, canActivate: [AdminGuard] }, // Add this route
-
+  {path: '', redirectTo: 'join', pathMatch: 'full'},
+  {path: 'login', component: AuthComponent},
+  {path: 'join', component: JoinSessionComponent},
+  {path: 'loginSpotify', component: LoginSpotifyComponent},
+  {path: 'admin', component: AdminComponent, canActivate: [AdminGuard]},
+  {path: 'users/:sessionCode', component: UserComponent},
+  {path: 'callback', component: CallbackComponent},
+  {path: 'session-screen/:id', component: SessionScreenComponent, canActivate: [AdminGuard]}, // Add this route
 
 ];

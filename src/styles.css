@@ -2,86 +2,7 @@
 @import '../node_modules/primeicons/primeicons.css';
 @import '../node_modules/primeng/resources/primeng.min.css';
 
-.auth-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f2f5;
-}
-
-.custom-tabview {
-    width: 400px;
-    max-width: 90%;
-}
-
-:host ::ng-deep .p-tabview-nav {
-    justify-content: center;
-    background: linear-gradient(to right, #6a11cb, #2575fc);
-    border-radius: 8px 8px 0 0;
-}
-
-:host ::ng-deep .p-tabview-nav li {
-    margin: 0;
-}
-
-.admin-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    padding: 20px;
-    background-color: #f0f2f5;
-  }
-
-
-:host ::ng-deep .p-tabview-nav li .p-tabview-nav-link {
-    color: white;
-    padding: 15px 25px;
-    border-radius: 8px 8px 8px 8px;
-    background: transparent;
-    transition: background 0.3s;
-}
-
-:host ::ng-deep .p-tabview-nav li.p-highlight .p-tabview-nav-link {
-    background: white;
-    color: #6a11cb;
-    font-weight: bold;
-}
-
-:host ::ng-deep .p-tabview-nav li .p-tabview-nav-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.panel-content {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(to right, #6a11cb, #2575fc);
-    color: white;
-    padding: 20px;
-    border-radius: 0px 0px 8px 8px;
-}
-
-.btn-shared {
-    display: inline-block;
-    width: 100%;
-    font-weight: 400;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: middle;
-    user-select: none;
-    border: 1px solid transparent;
-    padding: 0.375rem 0.75rem;
-    font-size: 1rem;
-    line-height: 1.5;
-    border-radius: 0.375rem;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    background: white;
-    color: #6a11cb;
-    cursor: pointer; /* Ajout du curseur */
-
-}
-
+/* Styles globaux */
 body {
   font-family: "Montserrat", sans-serif;
   height: 100%;
@@ -89,48 +10,225 @@ body {
 }
 
 
+/*HEADER*/
+.app-header {
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.app-header .p-menubar {
+  background: transparent; /* Fond transparent pour s'adapter au dégradé */
+  border: none; /* Supprimer les bordures */
+  box-shadow: none; /* Supprimer les ombres */
+}
+
+.app-header .p-menubar .p-menuitem-link {
+  color: white; /* Texte en blanc de base */
+  background: transparent;
+  border: none;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  transition: background 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+}
+
+.p-menuitem-text {
+  color: white;
+  text-decoration: none;
+}
+
+.app-header .p-menubar .p-menuitem-link .pi {
+  color: inherit; /* Hérite de la couleur du texte (blanc) */
+  margin-right: 0.5rem; /* Un peu d'espace à droite de l'icône */
+}
+
+.app-header .p-menubar .p-menuitem-link:hover .p-menuitem-text {
+  color: #6a11cb; /* Icônes violet au hover */
+}
+
+.app-header .p-menubar .p-menuitem-link.active .p-menuitem-text {
+  background-color: white; /* Fond blanc pour l'élément actif */
+  color: #6a11cb; /* Texte violet pour l'élément actif */
+  border-radius: 8px;
+}
+
+.app-header .p-menubar .p-menuitem-link:hover .pi {
+  color: #6a11cb; /* Icônes violet au hover */
+}
+
+.app-header .p-menubar .p-menuitem-link.active .pi {
+  color: #6a11cb; /* Icônes violet pour l'élément actif */
+}
+
+
+.body-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f2f5;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Panel générique avec les couleurs du TabView */
+.panel-container {
+  width: 400px; /* Largeur par défaut */
+  max-width: 90%; /* Largeur maximale de 90% de l'écran */
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  background: linear-gradient(to right, #6a11cb, #2575fc); /* Style de fond similaire au TabView */
+  color: white; /* Texte blanc */
+}
+
+/* Style des onglets du TabView */
+.p-tabview-nav {
+  justify-content: center;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  border-radius: 8px 8px 0 0;
+  border: none;
+  margin-bottom: 0;
+  padding-left: 2rem;
+  padding-right: 2rem;
+
+}
+
+.p-tabview-nav li .p-tabview-nav-link {
+  color: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  background: transparent;
+  transition: background 0.3s;
+  text-decoration: none;
+  box-shadow: none;
+  border: none;
+}
+
+.p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  background: white;
+  color: #6a11cb;
+  font-weight: bold;
+}
+
+.p-tabview-nav li .p-tabview-nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Panel Content */
+.panel-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
+  padding: 20px;
+  border-radius: 0 0 8px 8px;
+}
+
+.p-tabview .p-tabview-panels {
+  padding: 0;
+}
+
+.p-tabview-nav li {
+  margin: 0;
+}
+
+/* Boutons */
+.btn-shared {
+  display: inline-block;
+  width: 100%;
+  font-weight: 400;
+  text-align: center;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.375rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  background: white;
+  color: #6a11cb;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #6a11cb;
+  color: white;
+  margin: 5px 0;
+}
+
 .btn-shared[disabled] {
-    background: #e0e0e0; /* Light gray background for disabled state */
-    color: #a0a0a0; /* Light gray text color */
-    cursor: not-allowed; /* Change cursor to indicate non-interactivity */
-    border-color: #d0d0d0; /* Lighter border color */
-    box-shadow: none; /* Remove any box shadow */
-    opacity: 0.6; /* Reduce opacity for a more muted look */
-    pointer-events: none; /* Ensure the button is not interactive */
+  background: #e0e0e0;
+  color: #a0a0a0;
+  cursor: not-allowed;
+  border-color: #d0d0d0;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-  .button-group {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-  }
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
 
-.btn-small {
-    width: auto;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-  }
+/* Composants spécifiques */
+.switch-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  padding: 10px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
 
-.btn-primary{
-    background:  #6a11cb;
-    color:white;
-    width: 100%;
-    margin-top: 5px;
-    margin-bottom: 5px;
+.switch-container label {
+  margin: 0 10px;
+  color: white;
+  font-weight: bold;
+}
+
+.p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+  background-color: #6a11cb;
+  border-color: #6a11cb;
+}
+
+.p-inputswitch .p-inputswitch-slider {
+  background-color: white;
+  border-color: #6a11cb;
 }
 
 
-.center-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-top: 20px;
-    margin-bottom: 20px; /* Ajouter un peu de marge en haut si nécessaire */
-  }
+.shared-input {
+  display: block;
+  width: -webkit-fill-available;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.shared-input:focus {
+  color: #495057;
+  background-color: #fff;
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}

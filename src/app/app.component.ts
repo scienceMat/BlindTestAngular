@@ -1,80 +1,75 @@
-import { Component,OnInit  } from '@angular/core';
-import {Router, RouterModule} from '@angular/router';
-
-import { FooterComponent } from './shared/components/footer/footer.component';
-import { HeaderComponent } from './shared/components/header/header.component';
+import {Component, OnInit} from '@angular/core';
+import {Router, RouterOutlet} from '@angular/router';
 import {AuthService} from '@services/auth.service';
 import {HeaderUserComponent} from './shared/components/header-user/header-user.component';
+import {HeaderComponent} from './shared/components/header/header.component';
 import {FooterUserComponent} from './shared/components/footer-user/footer-user.component';
+import {FooterComponent} from './shared/components/footer/footer.component';
 import {CommonModule} from '@angular/common';
-import { SessionService } from '@services/session.service'; // Ajoute l'import du service Session
-import { Subscription } from 'rxjs';
+import {SessionService} from '@services/session.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   standalone: true,
-  imports: [RouterModule, FooterComponent, HeaderComponent, HeaderUserComponent, FooterUserComponent,CommonModule]
+  imports: [HeaderComponent, HeaderUserComponent, FooterComponent, FooterUserComponent, CommonModule, RouterOutlet]
 })
 export class AppComponent implements OnInit {
   protected title = 'BlindTestAngular';
   protected isAdmin: boolean = false;
   protected isLoginRoute: boolean = false;
-
-  protected sessionCode: string | null = null; // Utilise sessionCode à la place de sessionId
-  protected userName: string = '';  // Nom d'utilisateur
-  private subscription: Subscription = new Subscription(); // Pour gérer les abonnements
+  protected sessionCode: string | null = null;
+  protected userName: string = '';
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private sessionService: SessionService // Injecte le service Session
-  ) {}
+    private sessionService: SessionService
+  ) {
+  }
 
   ngOnInit(): void {
-    // S'abonner aux changements d'utilisateur enregistré
+    // S'abonner aux utilisateurs enregistrés
     this.subscription.add(
       this.authService.currentUser.subscribe(user => {
         if (user) {
-          this.userName = user.userName; // Met à jour le nom d'utilisateur
-          this.isAdmin = user.isAdmin; // Vérifie si l'utilisateur est admin
+          this.userName = user.userName;
+          this.isAdmin = user.isAdmin;
         } else {
-          this.userName = ''; // Réinitialise si pas d'utilisateur enregistré
+          this.userName = '';
           this.isAdmin = false;
         }
       })
     );
 
-    // S'abonner aux changements d'utilisateur invité
+    // Gestion des invités
     this.subscription.add(
       this.authService.currentUserGuestSubject.subscribe(guest => {
         if (guest) {
-          this.userName = guest.username; // Met à jour le nom d'utilisateur invité
-          this.isAdmin = false; // Un invité n'est pas admin
+          this.userName = guest.username;
+          this.isAdmin = false;
         }
       })
     );
 
-    // Récupère le sessionCode depuis le SessionService
-    this.sessionCode = this.sessionService.getSessionCode(); // Session stockée dans localStorage ou par session
-
-    // Si le sessionCode est absent, tente de le charger depuis sessionStorage
+    // Gérer la session actuelle
+    this.sessionCode = this.sessionService.getSessionCode();
     if (!this.sessionCode) {
       this.sessionCode = sessionStorage.getItem('sessionCode');
     }
 
-    // Stocke le sessionCode dans le sessionStorage pour persistance
     if (this.sessionCode) {
       this.sessionService.setSessionCode(this.sessionCode);
     }
 
+    // Mise à jour de la route active
     this.router.events.subscribe((event: any) => {
       if (event.url) {
-        // Met à jour l'état de la variable pour cacher/afficher le header et footer
         this.isLoginRoute = event.url === '/login';
       }
     });
   }
-
 }

@@ -1,0 +1,10 @@
+<div class="body-container">
+  <div class="panel-container">
+    <h2>Join Session</h2>
+    <div class="form-container">
+      <app-input-text placeholder="Pseudo" [(ngModel)]="userGuestName"></app-input-text>
+      <app-input-text placeholder="Session Code" [(ngModel)]="sessionCode"></app-input-text>
+      <button (click)="joinSessionAsUser()" class="btn-shared btn-primary">Join</button>
+    </div>
+  </div>
+</div>

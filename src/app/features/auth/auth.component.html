@@ -1,21 +1,8 @@
-<div class="auth-container">
- 
-  <!-- Si le mode est Admin, affiche les onglets Admin, sinon l'onglet User -->
+<div class="body-container">
   <p-tabView [(activeIndex)]="activeIndex" class="custom-tabview">
-   
-  
-    <ng-container *ngIf="!isAdmin">
-      <div class="panel-content">
-        <h2>Join Session</h2>
-        <div class="p-fluid form-container">
-          <app-input-text placeholder="Pseudo" [(ngModel)]="userGuestName"></app-input-text>
-          <app-input-text placeholder="Session Code" [(ngModel)]="sessionCode"></app-input-text>
-          <button (click)="joinSessionAsUser()" class="btn-shared btn-secondary mb-3.5">Join</button>
-        </div>
-      </div>
-    </ng-container>
 
-    <p-tabPanel *ngIf="isAdmin" header="Login Admin">
+    <!-- Onglet Login Admin -->
+    <p-tabPanel header="Login Admin">
       <div class="panel-content">
         <h2>Login Admin</h2>
         <div class="p-fluid form-container">
@@ -26,7 +13,8 @@
       </div>
     </p-tabPanel>
 
-    <p-tabPanel *ngIf="isAdmin" header="Create Admin">
+    <!-- Onglet Create Admin -->
+    <p-tabPanel header="Create Admin">
       <div class="panel-content">
         <h2>Create Admin</h2>
         <div class="p-fluid form-container">
@@ -36,11 +24,5 @@
         </div>
       </div>
     </p-tabPanel>
-    <div class="switch-container">
-      <label>User Mode</label>
-      <p-inputSwitch [(ngModel)]="isAdmin" binary="true"></p-inputSwitch>
-      <label> Admin Mode</label>
-    </div>
   </p-tabView>
-  
 </div>

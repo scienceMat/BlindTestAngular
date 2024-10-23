@@ -27,14 +27,14 @@ import { ActivatedRoute } from '@angular/router';
     FormsModule,
     RouterModule,
     LoginButton,
-  
+
     InputTextComponent,
     FontAwesomeModule
   ],
 })
 export class LecteurComponent implements OnInit, OnDestroy {
   @Input() session: Session | null = null;
-  @Input() currentTrack: TrackDTO | null = null; 
+  @Input() currentTrack: TrackDTO | null = null;
 
   @Output() trackPaused: EventEmitter<void> = new EventEmitter();
   @Output() trackResumed: EventEmitter<void> = new EventEmitter();
@@ -89,12 +89,12 @@ export class LecteurComponent implements OnInit, OnDestroy {
 
     // Extract and store the token from the URL hash if present
     this.extractTokenFromUrl();
-  
+
     // Initialize the Spotify player with the token if not already done
     if (this.token && !this.playerInitialized) {
       this.spotifyService.initializePlayer(this.token);
       this.playerInitialized = true;
-  
+
       // Subscribe to player state changes
       this.subscriptions.add(
         this.spotifyService.playerState$.subscribe(state => {
@@ -103,7 +103,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
           }
         })
       );
-  
+
       // Subscribe to playlist changes
       this.subscriptions.add(
         this.playlistService.playlist$.subscribe(playlist => {
@@ -111,10 +111,10 @@ export class LecteurComponent implements OnInit, OnDestroy {
           console.log('Updated playlist:', playlist);
         })
       );
-  
+
       // Load all sessions
       this.loadSessions();
-  
+
       // Subscribe to session changes
       this.subscriptions.add(
         this.sessionService.session$.subscribe(session => {
@@ -125,8 +125,8 @@ export class LecteurComponent implements OnInit, OnDestroy {
         })
       );
 
-      
-  
+
+
       // Get initial player state
       this.spotifyService.getCurrentPlaybackState().subscribe(state => {
         if (state) {
@@ -139,19 +139,19 @@ export class LecteurComponent implements OnInit, OnDestroy {
     }
 
     this.nextTrackEvent.subscribe(() => {
-      this.nextTrack(); 
+      this.nextTrack();
     });
 
     this.previousTrackEvent.subscribe(() => {
-      this.previousTrack(); 
+      this.previousTrack();
     });
 
     this.trackPaused.subscribe(() => {
-      this.pause(); 
+      this.pause();
     });
 
     this.trackResumed.subscribe(() => {
-      this.resume(); 
+      this.resume();
     });
 
   }
@@ -231,9 +231,9 @@ export class LecteurComponent implements OnInit, OnDestroy {
       console.error('Session ID is null');
       return;
     }
-  
+
     console.log('Playing track:', uri);
-  
+
     this.spotifyService.play({ uris: [uri] })
       .pipe(
         // Attendre un court délai pour s'assurer que la musique commence
@@ -253,10 +253,10 @@ export class LecteurComponent implements OnInit, OnDestroy {
           console.error('Current track is null');
           return;
         }
-  
+
         // Définir la durée de la piste à partir de `this.currentTrack`
         this.trackDuration = this.currentTrack.duration_ms || 0;
-  
+
         // Démarrer la barre de progression
         this.startProgressBar();
       });
@@ -290,7 +290,7 @@ export class LecteurComponent implements OnInit, OnDestroy {
           console.error('Invalid music index from backend.');
           return;
         }
-  
+
         const nextTrack = this.playlist[currentMusicIndex];
         if (nextTrack) {
           // Vérification si la musique actuelle est déjà la bonne
@@ -378,22 +378,6 @@ previousTrack() {
   }
 
 
-
-  submitAnswer(title: string, artist: string) {
-    if (this.session && this.session.id !== null) {
-      const answer = {
-        userId: this.userId,
-        title: title,
-        artist: artist
-      };
-      this.sessionService.submitAnswer(this.session.id, answer).subscribe(response => {
-        console.log('Answer submitted', response);
-      }, error => {
-        console.error('Error submitting answer:', error);
-      });
-    }
-  }
-
   private mapCurrentPlaybackResponseToPlaybackState(
     response: SpotifyApi.CurrentPlaybackResponse
   ): SpotifyPlaybackState {
@@ -423,15 +407,15 @@ previousTrack() {
 
   private updateTrackState(state: SpotifyApi.CurrentPlaybackResponse) {
     const playbackState = this.mapCurrentPlaybackResponseToPlaybackState(state);
-  
+
     const trackDTO = this.mapToTrackDTO(playbackState.track_window.current_track);
-  
+
     this.currentTrack = trackDTO;
     this.isPlaying = !playbackState.paused;
     this.trackDuration = trackDTO.duration_ms || 0;
     this.timeProgress = playbackState.position || 0;
     this.lastUpdateTime = performance.now();
-  
+
     if (this.isPlaying) {
       this.startProgressBar();
     } else {
