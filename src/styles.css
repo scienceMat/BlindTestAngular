@@ -2,15 +2,14 @@
 @import '../node_modules/primeicons/primeicons.css';
 @import '../node_modules/primeng/resources/primeng.min.css';
 
-/* Styles globaux */
+/* =============== Global Styles =============== */
 body {
   font-family: "Montserrat", sans-serif;
   height: 100%;
   margin: 0;
 }
 
-
-/*HEADER*/
+/* =============== Header Styles =============== */
 .app-header {
   background: linear-gradient(to right, #6a11cb, #2575fc);
   color: white;
@@ -20,13 +19,13 @@ body {
 }
 
 .app-header .p-menubar {
-  background: transparent; /* Fond transparent pour s'adapter au dégradé */
-  border: none; /* Supprimer les bordures */
-  box-shadow: none; /* Supprimer les ombres */
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .app-header .p-menubar .p-menuitem-link {
-  color: white; /* Texte en blanc de base */
+  color: white;
   background: transparent;
   border: none;
   font-weight: bold;
@@ -41,29 +40,23 @@ body {
 }
 
 .app-header .p-menubar .p-menuitem-link .pi {
-  color: inherit; /* Hérite de la couleur du texte (blanc) */
-  margin-right: 0.5rem; /* Un peu d'espace à droite de l'icône */
+  color: inherit;
+  margin-right: 0.5rem;
 }
 
-.app-header .p-menubar .p-menuitem-link:hover .p-menuitem-text {
-  color: #6a11cb; /* Icônes violet au hover */
+.app-header .p-menubar .p-menuitem-link:hover .p-menuitem-text,
+.app-header .p-menubar .p-menuitem-link:hover .pi {
+  color: #6a11cb;
 }
 
-.app-header .p-menubar .p-menuitem-link.active .p-menuitem-text {
-  background-color: white; /* Fond blanc pour l'élément actif */
-  color: #6a11cb; /* Texte violet pour l'élément actif */
+.app-header .p-menubar .p-menuitem-link.active .p-menuitem-text,
+.app-header .p-menubar .p-menuitem-link.active .pi {
+  background-color: white;
+  color: #6a11cb;
   border-radius: 8px;
 }
 
-.app-header .p-menubar .p-menuitem-link:hover .pi {
-  color: #6a11cb; /* Icônes violet au hover */
-}
-
-.app-header .p-menubar .p-menuitem-link.active .pi {
-  color: #6a11cb; /* Icônes violet pour l'élément actif */
-}
-
-
+/* =============== Body & Panels =============== */
 .body-container {
   display: flex;
   justify-content: center;
@@ -74,19 +67,26 @@ body {
   box-sizing: border-box;
 }
 
-/* Panel générique avec les couleurs du TabView */
 .panel-container {
-  width: 400px; /* Largeur par défaut */
-  max-width: 90%; /* Largeur maximale de 90% de l'écran */
+  width: 400px;
+  max-width: 90%;
   background-color: white;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
-  background: linear-gradient(to right, #6a11cb, #2575fc); /* Style de fond similaire au TabView */
-  color: white; /* Texte blanc */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
 }
 
-/* Style des onglets du TabView */
+.panel-content {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
+  padding: 20px;
+  border-radius: 0 0 8px 8px;
+}
+
+/* =============== TabView Styles =============== */
 .p-tabview-nav {
   justify-content: center;
   background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -95,7 +95,6 @@ body {
   margin-bottom: 0;
   padding-left: 2rem;
   padding-right: 2rem;
-
 }
 
 .p-tabview-nav li .p-tabview-nav-link {
@@ -104,9 +103,6 @@ body {
   border-radius: 12px;
   background: transparent;
   transition: background 0.3s;
-  text-decoration: none;
-  box-shadow: none;
-  border: none;
 }
 
 .p-tabview-nav li.p-highlight .p-tabview-nav-link {
@@ -119,24 +115,7 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Panel Content */
-.panel-content {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  color: white;
-  padding: 20px;
-  border-radius: 0 0 8px 8px;
-}
-
-.p-tabview .p-tabview-panels {
-  padding: 0;
-}
-
-.p-tabview-nav li {
-  margin: 0;
-}
-
-/* Boutons */
+/* =============== Button Styles =============== */
 .btn-shared {
   display: inline-block;
   width: 100%;
@@ -164,65 +143,26 @@ body {
   cursor: not-allowed;
   border-color: #d0d0d0;
   opacity: 0.6;
-  pointer-events: none;
 }
 
+/* =============== Form Styles =============== */
 .form-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-
-/* Composants spécifiques */
-.switch-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  padding: 10px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  width: 100%;
-}
-
-.switch-container label {
-  margin: 0 10px;
-  color: white;
-  font-weight: bold;
-}
-
-.p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
-  background-color: #6a11cb;
-  border-color: #6a11cb;
-}
-
-.p-inputswitch .p-inputswitch-slider {
-  background-color: white;
-  border-color: #6a11cb;
-}
-
-
 .shared-input {
   display: block;
-  width: -webkit-fill-available;
+  width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
   line-height: 1.5;
   color: #495057;
   background-color: #fff;
-  background-clip: padding-box;
   border: 1px solid #ced4da;
   border-radius: 0.375rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   margin-bottom: 1rem;
-  width: 100%;
 }
 
 .shared-input:focus {
@@ -233,26 +173,195 @@ body {
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-
-/*MENU*/
+/* =============== Menu Styles =============== */
 .menu-login {
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  color: white;
+  color: #6a11cb;
   cursor: pointer;
   text-decoration: none;
 }
 
+.p-panelmenu-header-content{
+  color: #6a11cb;
+  background: transparent;
+  border: none;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  transition: background 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+}
+
+.p-menuitem-icon{
+  color: #6a11cb;
+  font-weight: bold;
+  text-decoration: none;
+}
+
 .menu-login:hover {
-  background: white;
+  background: #6a11cb;
+  color: #6a11cb;
+}
+
+.p-panelmenu-header-action{
+  text-decoration: none;
+
+}
+
+.p-panelmenu-header-content:hover {
+  background-color: rgba(106, 17, 203, 0.1); /* Fond violet transparent */
+  color: #6a11cb; /* Conserver la couleur de texte violet */
+}
+
+
+.p-panelmenu-header-action .p-menuitem-text{
+  color: #6a11cb;
 }
 
 .menu-login i {
   margin-right: 0.5rem;
 }
-.menu-login:hover {
-  color: #6a11cb; /* Icônes violet au hover */
-  background: rgba(255, 255, 255, 0.2);
 
+/* =============== Sidebar & Layout =============== */
+.admin-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f0f2f5;
+}
+
+.sidebar {
+  width: 250px;
+  background:  white;
+
+  padding: 20px 10px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar .p-panelmenu .p-menuitem-link {
+  color: white;
+  transition: background 0.3s ease;
+}
+
+.sidebar .p-panelmenu .p-menuitem-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.header {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 1.5rem;
+  color: #6a11cb;
+}
+
+
+/* =============== Tab Container =============== */
+.tab-container {
+  display: flex;
+  margin: 20px 0;
+}
+
+.tab-container button {
+  background: white;
+  border: none;
+  padding: 10px 20px;
+  margin-right: 10px;
+  color: #6a11cb;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.tab-container button.active,
+.tab-container button:hover {
+  background: #6a11cb;
+  color: white;
+}
+
+/* =============== Main Content =============== */
+.main-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.add-btn {
+  background: #6a11cb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.add-btn:hover {
+  background: #2575fc;
+}
+
+.logout-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 20px;
+}
+
+.logout-btn:hover {
+  background: #cc0000;
+}
+
+.content-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Légère ombre */
+}
+
+
+/* ===================== Card Button Style ===================== */
+.card-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 150px;
+  border: 2px dashed rgba(106, 17, 203, 0.5); /* Bordure pointillée avec un violet transparent */
+  border-radius: 10px;
+  background-color: white;
+  color: #6a11cb;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.card-button:hover {
+  background-color: rgba(106, 17, 203, 0.1); /* Couleur violette claire au survol */
+  border-color: rgba(106, 17, 203, 1); /* Renforce la couleur de la bordure au survol */
+  color: #6a11cb;
+}
+
+/* Alignement centré du texte et des icônes */
+.card-button i {
+  margin-right: 10px;
+  font-size: 1.5rem;
 }

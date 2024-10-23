@@ -13,6 +13,9 @@ import { SelectSessionComponent } from '../../shared/components/SelectSession/se
 import { InputTextComponent } from '../../shared/components/input/input.component';
 import { PlaylistService } from '../../core/services/utils/playlistService';
 import { switchMap } from 'rxjs/operators';
+import { PanelMenuModule } from 'primeng/panelmenu';
+import { MenuItem } from 'primeng/api';
+import { MenuModule } from 'primeng/menu'; // Ajoutez ceci
 
 @Component({
   selector: 'app-admin',
@@ -25,7 +28,9 @@ import { switchMap } from 'rxjs/operators';
     RouterModule,
     LoginButton,
     InputTextComponent,
-    SelectSessionComponent
+    SelectSessionComponent,
+    PanelMenuModule,
+    MenuModule 
   ],
   providers: [UserService, SessionService, SpotifyService, InputTextComponent],
 })
@@ -39,6 +44,7 @@ export class AdminComponent implements OnInit {
   showRanking: boolean = false;
   hasBuzzed: boolean = false;
   activeTab: string = 'blind-tests'; // Définit l'onglet actif
+  menuItems: MenuItem[] = []; // Pour stocker les éléments du menu
 
   ranking: any[] = [];
   showSubmitButton: boolean = true;
@@ -54,7 +60,9 @@ export class AdminComponent implements OnInit {
   ngOnInit() {
     const params = this.getHashParams();
 
-  
+    this.menuItems = [
+      { label: 'Mes Sessions', icon: 'pi pi-user', command: () => this.navigateToBlindTests() }
+    ];
     const currentUser = this.authService.currentUserValue;
     if (currentUser && currentUser.isAdmin) {
       const token = localStorage.getItem('spotify_token');
@@ -76,6 +84,7 @@ export class AdminComponent implements OnInit {
     } else {
       this.router.navigate(['/login']);
     }
+    
   }
 
   // Ouvrir un blind test
