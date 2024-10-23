@@ -1,3 +1,10 @@
 <header class="app-header">
-  <p-menubar [model]="items"></p-menubar>
+  <p-menubar [model]="items">
+    <ng-template pTemplate="end">
+      <a class="ui-menuitem-link menu-login" [routerLink]="['/login']">
+        <i class="pi pi-sign-in"></i>
+        <span>Login</span>
+      </a>
+    </ng-template>
+  </p-menubar>
 </header>

@@ -232,3 +232,27 @@ body {
   outline: 0;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
+
+
+/*MENU*/
+.menu-login {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.menu-login:hover {
+  background: white;
+}
+
+.menu-login i {
+  margin-right: 0.5rem;
+}
+.menu-login:hover {
+  color: #6a11cb; /* Icônes violet au hover */
+  background: rgba(255, 255, 255, 0.2);
+
+}

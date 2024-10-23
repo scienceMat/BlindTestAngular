@@ -15,24 +15,17 @@ export class HeaderComponent implements OnInit{
   items: MenuItem[] = [];  // Déclare le tableau items
 
   ngOnInit(): void {
-
     this.items = [
       {
         label: 'Home',
         icon: 'pi pi-home',
-        routerLink: ['']  // Utilisation de routerLink
+        routerLink: [''],
       },
       {
-        label: 'PLay',
+        label: 'Play',
         icon: 'pi pi-play',
-        routerLink: ['/users']  // Navigation vers la page Features
-      },
-      {
-        label: 'Login',
-        icon: 'pi pi-sign-in',
-        routerLink: ['/login'],  // Lien vers la page Contact
+        routerLink: ['/users'],
       }
     ];
   }
-
 }
